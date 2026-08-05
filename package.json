@@ -1,0 +1,16 @@
+{
+  "name": "ds-education-erp",
+  "version": "1.0.0",
+  "description": "D's Education Full-Stack ERP System",
+  "scripts": {
+    "install:all": "cd server && npm install && cd ../client && npm install",
+    "dev": "npx concurrently \"cd server && npm run dev\" \"cd client && npm start\"",
+    "build": "cd client && npm run build",
+    "start": "cd server && npm start",
+    "seed": "node server/utils/seed.js",
+    "zip": "powershell -Command \"Compress-Archive -Path server\\* -DestinationPath deploy_crm.zip -Force\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

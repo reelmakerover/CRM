@@ -1,0 +1,155 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const { connectDB, sequelize } = require('./config/db');
+require('./models'); // Load associations
+
+const app = express();
+
+// Middleware
+app.use(cors({ origin: true, credentials: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/students', require('./routes/students'));
+app.use('/api/courses', require('./routes/courses'));
+app.use('/api/batches', require('./routes/batches'));
+app.use('/api/exams', require('./routes/exams'));
+app.use('/api/results', require('./routes/results'));
+app.use('/api/toppers', require('./routes/toppers'));
+app.use('/api/blogs', require('./routes/blogs'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/settings', require('./routes/settings'));
+app.use('/api/superadmin', require('./routes/superadmin'));
+app.use('/api/superproadmin', require('./routes/superproadmin'));
+app.use('/api/leads', require('./routes/leads'));
+app.use('/api/exam-kits', require('./routes/examKits'));
+
+// Health check
+app.get('/api/health', (req, res) => res.json({ status: "D's Education Server Running" }));
+
+// Serve static frontend build if present
+const fs = require('fs');
+const publicDir = path.join(__dirname, 'public');
+const clientBuildDir = path.join(__dirname, '../client/build');
+const staticDir = fs.existsSync(publicDir) ? publicDir : (fs.existsSync(clientBuildDir) ? clientBuildDir : null);
+if (staticDir) {
+  app.use(express.static(staticDir));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+    res.sendFile(path.join(staticDir, 'index.html'));
+  });
+}
+
+// Connect DB & Start Server
+connectDB().then(async () => {
+  // Sync database safely
+  await sequelize.sync();
+
+  // Ensure columns exist in Users table for SQLite compatibility before queries
+  try {
+    const queryInterface = sequelize.getQueryInterface();
+    const tableInfo = await queryInterface.describeTable('Users');
+    if (!tableInfo.otpCode) {
+      await queryInterface.addColumn('Users', 'otpCode', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+    }
+    if (!tableInfo.otpExpires) {
+      await queryInterface.addColumn('Users', 'otpExpires', { type: require('sequelize').DataTypes.DATE, allowNull: true });
+    }
+    if (!tableInfo.otpPurpose) {
+      await queryInterface.addColumn('Users', 'otpPurpose', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+    }
+    if (!tableInfo.visiblePassword) {
+      await queryInterface.addColumn('Users', 'visiblePassword', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+    }
+    console.log('Database synced & User columns verified');
+  } catch (colErr) {
+    console.error('Error verifying table columns:', colErr.message);
+  }
+
+  // Auto-seed admin credentials from environment variables if DB is empty / users don't exist
+  try {
+    const User = require('./models/User');
+    const superProEmail = process.env.SUPER_PRO_ADMIN_EMAIL || 'teamyash2004@gmail.com';
+    const superProPassword = process.env.SUPER_PRO_ADMIN_PASSWORD || '@Saini1508Y';
+    const superEmail = process.env.SUPERADMIN_EMAIL || 'superadmin@dseducation.com';
+    const superPassword = process.env.SUPERADMIN_PASSWORD || 'Admin@123';
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@dseducation.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@123';
+
+    // 1. Super Pro Admin
+    let superProUser = await User.findOne({ where: { email: superProEmail } });
+    if (!superProUser) {
+      await User.create({
+        name: "Super Pro Admin",
+        email: superProEmail,
+        password: superProPassword,
+        role: "superproadmin"
+      });
+      console.log(`✅ Default Super Pro Admin created: ${superProEmail}`);
+    } else {
+      const match = await superProUser.matchPassword(superProPassword);
+      if (!match || superProUser.role !== 'superproadmin') {
+        superProUser.password = superProPassword;
+        superProUser.role = 'superproadmin';
+        await superProUser.save();
+        console.log(`✅ Super Pro Admin password/role resynced: ${superProEmail}`);
+      } else {
+        console.log(`✅ Super Pro Admin verified: ${superProEmail}`);
+      }
+    }
+
+    // 2. Super Admin
+    let superUser = await User.findOne({ where: { email: superEmail } });
+    if (!superUser) {
+      await User.create({
+        name: "Super Admin",
+        email: superEmail,
+        password: superPassword,
+        role: "superadmin"
+      });
+      console.log(`✅ Default Super Admin created: ${superEmail}`);
+    } else {
+      const match = await superUser.matchPassword(superPassword);
+      if (!match || superUser.role !== 'superadmin') {
+        superUser.password = superPassword;
+        superUser.role = 'superadmin';
+        await superUser.save();
+        console.log(`✅ Super Admin password/role resynced: ${superEmail}`);
+      } else {
+        console.log(`✅ Super Admin verified: ${superEmail}`);
+      }
+    }
+
+    // Auto-populate visiblePassword for existing superadmins if null
+    const superAdminsNullPass = await User.findAll({ where: { role: 'superadmin', visiblePassword: null } });
+    for (const sa of superAdminsNullPass) {
+      sa.visiblePassword = 'Admin@123';
+      await sa.save();
+    }
+
+    // 3. Admin
+    let adminUser = await User.findOne({ where: { email: adminEmail } });
+    if (!adminUser) {
+      await User.create({
+        name: "Admin",
+        email: adminEmail,
+        password: adminPassword,
+        role: "admin"
+      });
+      console.log(`✅ Default Admin verified/created at: ${adminEmail}`);
+    }
+  } catch (err) {
+    console.error('Failed to ensure default admin credentials on startup:', err.message);
+  }
+
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, '0.0.0.0', () => console.log(`D's Education Server running on port ${PORT}`));
+}).catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+});
