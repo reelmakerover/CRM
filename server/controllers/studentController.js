@@ -47,10 +47,14 @@ exports.createStudent = async (req, res) => {
   try {
     const { name, email, phone, parentName, parentEmail, parentPhone, course, batch, fees, password, ...rest } = req.body;
     
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      await t.rollback();
-      return res.status(400).json({ message: 'User with this email already exists' });
+    const targetEmail = email && email.trim() !== '' ? email.trim() : null;
+
+    if (targetEmail) {
+      const existingUser = await User.findOne({ where: { email: targetEmail } });
+      if (existingUser) {
+        await t.rollback();
+        return res.status(400).json({ message: 'User with this email already exists' });
+      }
     }
 
     // Generate enrollment number
@@ -65,7 +69,7 @@ exports.createStudent = async (req, res) => {
     const batchId = (batch && batch !== '') ? parseInt(batch, 10) : null;
 
     const student = await Student.create({
-      enrollmentNo, name, email, phone, parentName, parentEmail, parentPhone, 
+      enrollmentNo, name, email: targetEmail, phone, parentName, parentEmail, parentPhone, 
       courseId, 
       batchId,
       fees: { totalFees, paidAmount, pendingAmount: totalFees - paidAmount, installments: fees?.installments || [] },
@@ -75,7 +79,7 @@ exports.createStudent = async (req, res) => {
     // Create user account
     const userPassword = password || `DSE@${phone?.slice(-4) || '1234'}`;
     await User.create({ 
-      name, email, password: userPassword, role: 'student', phone, parentEmail, 
+      name, email: targetEmail, password: userPassword, role: 'student', phone, parentEmail, 
       studentId: student.id 
     }, { transaction: t });
     

@@ -199,7 +199,7 @@ export default function AdminStudents() {
             <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[65vh] overflow-y-auto">
               {[
                 { label: 'Full Name *', field: 'name', type: 'text' },
-                { label: 'Email *', field: 'email', type: 'email' },
+                { label: 'Email (Optional)', field: 'email', type: 'text' },
                 { label: 'Phone', field: 'phone', type: 'tel' },
                 { label: modal === 'add' ? 'Password (auto if empty)' : 'New Password (leave blank to keep)', field: 'password', type: 'password' },
                 { label: 'Address', field: 'address', type: 'text' },
