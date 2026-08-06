@@ -7,6 +7,7 @@ import api from '../../utils/api';
 const navLinks = [
   { label: 'Home', path: '/' },
   { label: 'Courses', path: '/courses' },
+  { label: 'Free Lectures', path: '/lectures' },
   { label: 'Test Series', path: '/store' },
   { label: 'Batches', path: '/batches' },
   { label: 'Results', path: '/results' },

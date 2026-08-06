@@ -4,7 +4,7 @@ import {
   FiBook, FiHome, FiUsers, FiLayers, FiCalendar, FiClipboard,
   FiHelpCircle, FiBarChart2, FiAward, FiBell, FiSettings,
   FiLogOut, FiMenu, FiX, FiChevronRight, FiFileText, FiLayout,
-  FiPhoneCall, FiGift
+  FiPhoneCall, FiGift, FiVideo
 } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -15,6 +15,7 @@ const NAV = [
   { icon: <FiPhoneCall />, label: 'Telecaller & Leads', path: '/admin/leads' },
   { icon: <FiUsers />, label: 'Students', path: '/admin/students' },
   { icon: <FiBook />, label: 'Courses', path: '/admin/courses' },
+  { icon: <FiVideo />, label: 'Lectures', path: '/admin/lectures' },
   { icon: <FiCalendar />, label: 'Batches', path: '/admin/batches' },
   { icon: <FiClipboard />, label: 'Exams', path: '/admin/exams' },
   { icon: <FiHelpCircle />, label: 'Questions', path: '/admin/questions' },

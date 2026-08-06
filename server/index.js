@@ -29,6 +29,8 @@ app.use('/api/superadmin', require('./routes/superadmin'));
 app.use('/api/superproadmin', require('./routes/superproadmin'));
 app.use('/api/leads', require('./routes/leads'));
 app.use('/api/exam-kits', require('./routes/examKits'));
+app.use('/api/lectures', require('./routes/lectures'));
+
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: "D's Education Server Running" }));
@@ -68,6 +70,30 @@ connectDB().then(async () => {
       await queryInterface.addColumn('Users', 'visiblePassword', { type: require('sequelize').DataTypes.STRING, allowNull: true });
     }
     console.log('Database synced & User columns verified');
+
+    // Ensure columns exist in Lectures table for SQLite compatibility
+    try {
+      const lectTableInfo = await queryInterface.describeTable('Lectures');
+      if (!lectTableInfo.youtubeId) {
+        await queryInterface.addColumn('Lectures', 'youtubeId', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+      }
+      if (!lectTableInfo.isFree) {
+        await queryInterface.addColumn('Lectures', 'isFree', { type: require('sequelize').DataTypes.BOOLEAN, defaultValue: false });
+      }
+      if (!lectTableInfo.order) {
+        await queryInterface.addColumn('Lectures', 'order', { type: require('sequelize').DataTypes.INTEGER, defaultValue: 0 });
+      }
+      if (!lectTableInfo.courseId) {
+        await queryInterface.addColumn('Lectures', 'courseId', { type: require('sequelize').DataTypes.INTEGER, allowNull: true });
+      }
+      if (!lectTableInfo.subjectId) {
+        await queryInterface.addColumn('Lectures', 'subjectId', { type: require('sequelize').DataTypes.INTEGER, allowNull: true });
+      }
+      console.log('Lectures columns verified');
+    } catch (lectErr) {
+      // If table doesn't exist, sync already handles it
+      console.log('Lectures table check skipped or handled by sync');
+    }
   } catch (colErr) {
     console.error('Error verifying table columns:', colErr.message);
   }

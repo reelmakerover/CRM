@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FiArrowRight, FiStar, FiUsers, FiAward, FiTrendingUp, FiCheck,
-  FiBook, FiClock, FiShield, FiTarget, FiZap, FiPhone
+  FiBook, FiClock, FiShield, FiTarget, FiZap, FiPhone, FiVideo
 } from 'react-icons/fi';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
@@ -55,6 +55,7 @@ export default function HomePage() {
   });
   const [latestBlogs, setLatestBlogs] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [welcomeVideo, setWelcomeVideo] = useState(null);
 
   useEffect(() => {
     // Determine number of slides dynamically
@@ -166,6 +167,11 @@ export default function HomePage() {
       if (Array.isArray(r.data) && r.data.length > 0) setLatestBlogs(r.data.slice(0, 3));
     }).catch(e => console.log('Blogs fetch error:', e.message));
 
+    // 6. Free Lectures for welcome preview
+    api.get('/lectures/free').then(r => {
+      if (Array.isArray(r.data) && r.data.length > 0) setWelcomeVideo(r.data[0]);
+    }).catch(e => console.log('Free lectures welcome video error:', e.message));
+
     // Scroll reveal
     const obs = new IntersectionObserver((entries) => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
@@ -213,7 +219,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════
           TOP BANNER SLIDER / CAROUSEL
       ═══════════════════════════════════════ */}
-      <div className="relative w-full overflow-hidden bg-slate-950 mt-[68px] h-[160px] sm:h-[220px] md:h-[280px] lg:h-[320px] xl:h-[340px]">
+      <div className="relative w-full overflow-hidden bg-slate-950 mt-[68px] h-[260px] sm:h-[280px] md:h-[320px] lg:h-[360px] xl:h-[400px]">
         {slides.length === 0 ? (
           <div className="w-full h-full flex items-center justify-center bg-slate-900 text-slate-500">
             No active banners found.
@@ -237,26 +243,26 @@ export default function HomePage() {
                   />
                   {/* Overlay content ONLY if title or badge exists */}
                   {(slide.title || slide.badge) && (
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/40 to-transparent flex flex-col justify-end p-8 md:p-16">
-                      <div className="max-w-4xl mx-auto w-full text-left space-y-3">
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/45 to-transparent flex flex-col justify-end p-4 sm:p-8 md:p-16">
+                      <div className="max-w-4xl mx-auto w-full text-left space-y-2 sm:space-y-3">
                         {slide.badge && (
-                          <span className="badge bg-gold-400 text-slate-950 font-extrabold text-xs px-3 py-1 rounded-full shadow-md uppercase tracking-wider inline-block">
+                          <span className="badge bg-gold-400 text-slate-950 font-extrabold text-[10px] sm:text-xs px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full shadow-md uppercase tracking-wider inline-block">
                             {slide.badge}
                           </span>
                         )}
                         {slide.title && (
-                          <h2 className="font-display text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg">
+                          <h2 className="font-display text-xl sm:text-3xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg">
                             {slide.title}
                           </h2>
                         )}
                         {slide.subtitle && (
-                          <p className="text-slate-200 text-sm md:text-lg max-w-2xl font-medium drop-shadow-md">
+                          <p className="text-slate-200 text-xs sm:text-sm md:text-lg max-w-2xl font-medium drop-shadow-md line-clamp-2 sm:line-clamp-none">
                             {slide.subtitle}
                           </p>
                         )}
                         {slide.link && (
-                          <div className="pt-2">
-                            <span className="btn-gold text-sm px-6 py-2.5 shadow-xl hover:scale-105 transition-all inline-flex items-center gap-2">
+                          <div className="pt-1">
+                            <span className="btn-gold text-xs sm:text-sm px-4 py-2 sm:px-6 sm:py-2.5 shadow-xl hover:scale-105 transition-all inline-flex items-center gap-2">
                               Explore Now <FiArrowRight />
                             </span>
                           </div>
@@ -282,25 +288,25 @@ export default function HomePage() {
                     e.preventDefault();
                     setCurrentSlide(prev => (prev - 1 + slides.length) % slides.length);
                   }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all backdrop-blur-sm border border-white/10"
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all backdrop-blur-sm border border-white/10"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>
+                  <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7"/></svg>
                 </button>
                 <button 
                   onClick={(e) => {
                     e.preventDefault();
                     setCurrentSlide(prev => (prev + 1) % slides.length);
                   }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all backdrop-blur-sm border border-white/10"
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center transition-all backdrop-blur-sm border border-white/10"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
+                  <svg className="w-4 h-4 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7"/></svg>
                 </button>
               </>
             )}
 
             {/* Slider Dots */}
             {slides.length > 1 && (
-              <div className="absolute bottom-6 inset-x-0 z-20 flex justify-center gap-2">
+              <div className="absolute bottom-3 sm:bottom-6 inset-x-0 z-20 flex justify-center gap-2">
                 {slides.map((_, i) => (
                   <button 
                     key={i} 
@@ -308,7 +314,7 @@ export default function HomePage() {
                       e.preventDefault();
                       setCurrentSlide(i);
                     }}
-                    className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${i === currentSlide ? 'bg-gold-400 w-8' : 'bg-white/40 hover:bg-white/60'}`}
+                    className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-300 ${i === currentSlide ? 'bg-gold-400 w-6 sm:w-8' : 'bg-white/40 hover:bg-white/60'}`}
                   />
                 ))}
               </div>
@@ -367,54 +373,62 @@ export default function HomePage() {
               </div>
             </div>
             
-            {/* Right Chat Avatars Column */}
-            <div className="lg:col-span-5 flex justify-center relative">
-              <div className="relative w-full max-w-[450px] min-h-[460px] md:min-h-[480px]">
-                
-                {/* Dotted border background paths */}
-                <div className="absolute top-12 left-8 w-[160px] h-[160px] rounded-full border border-dashed border-primary-300 animate-spin" style={{ animationDuration: '60s' }} />
-                <div className="absolute bottom-6 right-6 w-[200px] h-[200px] rounded-full border border-dashed border-gold-300 animate-spin" style={{ animationDuration: '80s', animationDirection: 'reverse' }} />
-                
-                {/* 1. Student Avatar Card (Top Right) */}
-                <div className="absolute top-0 right-4 flex flex-col items-center z-20 group" style={{ animation: 'float 6s ease-in-out infinite', animationDelay: '1.5s' }}>
-                  {/* Student speech bubble */}
-                  <div className="mb-3 bg-white text-slate-800 text-xs font-semibold py-2.5 px-4 rounded-2xl rounded-tr-none shadow-xl border border-slate-100 w-56 text-left relative">
-                    {settings.welcome_stu_speech || "Vikram Sir, how can I secure 95%+ in commerce boards?"}
-                    <div className="absolute top-0 -right-2 w-3 h-3 bg-white border-t border-r border-slate-100 transform rotate-[45deg]" />
+            {/* Right Interactive Lecture Video Column */}
+            <div className="lg:col-span-5 flex justify-center">
+              <div className="w-full max-w-[460px] bg-white rounded-3xl border border-slate-200/80 shadow-2xl p-5 space-y-4 hover:shadow-glow transition-all duration-300 relative">
+                {/* Background decorative ring */}
+                <div className="absolute -top-6 -right-6 w-24 h-24 bg-primary-100/30 rounded-full blur-2xl" />
+                <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-gold-100/30 rounded-full blur-2xl" />
+
+                {/* Simulated Monitor/Frame Header */}
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex gap-1.5">
+                    {['bg-rose-500', 'bg-yellow-500', 'bg-emerald-500'].map(c => <div key={c} className={`w-2.5 h-2.5 rounded-full ${c}`} />)}
                   </div>
-                  {/* Student image circle */}
-                  <div className="w-28 h-28 md:w-32 md:h-32 rounded-full border-4 border-gold-400 p-1 bg-white shadow-2xl overflow-hidden">
-                    <img 
-                      src={settings.welcome_stu_avatar ? (settings.welcome_stu_avatar.startsWith('http') ? settings.welcome_stu_avatar : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${settings.welcome_stu_avatar}`) : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"} 
-                      alt="Commerce Student" 
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  </div>
-                  <span className="text-[10px] text-slate-500 font-bold bg-slate-100 border px-2 py-0.5 rounded-full mt-2 shadow-sm">
-                    Commerce Aspirant
-                  </span>
-                </div>
-                
-                {/* 2. Director Vikram Sir Avatar Card (Bottom Left) */}
-                <div className="absolute bottom-4 left-4 flex flex-col items-center z-10 group" style={{ animation: 'float 6s ease-in-out infinite' }}>
-                  {/* Vikram Sir speech bubble */}
-                  <div className="mb-3 bg-primary-950 text-white text-xs font-medium py-3 px-4 rounded-2xl rounded-bl-none shadow-2xl border border-primary-800 w-64 text-left relative">
-                    {settings.welcome_dir_speech || "D's Education is where commerce students learn with focus and grow into board toppers!"}
-                    <div className="absolute bottom-0 -left-2 w-3 h-3 bg-primary-950 border-b border-l border-primary-800 transform rotate-[45deg]" />
-                  </div>
-                  {/* Director image circle */}
-                  <div className="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-primary-500 p-1 bg-white shadow-2xl overflow-hidden">
-                    <img 
-                      src={settings.welcome_dir_avatar ? (settings.welcome_dir_avatar.startsWith('http') ? settings.welcome_dir_avatar : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${settings.welcome_dir_avatar}`) : "https://images.unsplash.com/photo-1544717305-2782549b5136?w=400&auto=format&fit=crop&q=80"} 
-                      alt="Vikram Rathore Sir" 
-                      className="w-full h-full object-cover rounded-full"
-                    />
-                  </div>
-                  <span className="text-[11px] text-primary-800 font-extrabold bg-primary-50 border border-primary-200 px-3 py-1 rounded-full mt-2 shadow-sm">
-                    Vikram Rathore Sir
+                  <span className="badge bg-gold-400 text-slate-950 font-extrabold text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    🔥 Featured Demo Lecture
                   </span>
                 </div>
 
+                {/* Video Player Embed */}
+                <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-950 border border-slate-150 shadow-md">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${welcomeVideo ? welcomeVideo.youtubeId : 'd1mXn4L_WvU'}`}
+                    title={welcomeVideo ? welcomeVideo.title : 'Featured Lecture'}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+
+                {/* Video Description */}
+                <div className="text-left space-y-2">
+                  <span className="text-primary-600 font-bold text-xs uppercase tracking-wider block">
+                    📚 {welcomeVideo?.subject?.name || 'Class 12 Accountancy'}
+                  </span>
+                  <h3 className="font-bold text-slate-800 text-base leading-snug line-clamp-2">
+                    {welcomeVideo?.title || 'Partnership Fundamentals | Commerce Strategy by Vikram Sir'}
+                  </h3>
+                  <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                    {welcomeVideo?.description || 'Learn how to secure 95%+ in your board exams with this basic concept lecture covering capital accounts, interest on drawings, and profit appropriation.'}
+                  </p>
+                </div>
+
+                {/* CTA Link to Free Lectures Page */}
+                <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                  <Link to="/lectures" className="flex-1 btn-secondary text-xs justify-center py-2.5 flex items-center gap-2">
+                    <FiVideo /> All Lectures
+                  </Link>
+                  <a 
+                    href={welcomeVideo ? welcomeVideo.videoUrl : 'https://www.youtube.com/watch?v=d1mXn4L_WvU'} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="flex-1 btn-gold text-xs justify-center py-2.5 flex items-center gap-2 shadow-sm"
+                  >
+                    Watch on YouTube ↗
+                  </a>
+                </div>
               </div>
             </div>
             

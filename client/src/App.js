@@ -13,6 +13,7 @@ import ContactPage from './pages/ContactPage';
 import BlogsPage from './pages/BlogsPage';
 import BlogDetailPage from './pages/BlogDetailPage';
 import TestSeriesPage from './pages/TestSeriesPage';
+import LecturesPage from './pages/LecturesPage';
 
 // Admin Pages
 import AdminLayout from './components/admin/AdminLayout';
@@ -29,6 +30,7 @@ import AdminNotifications from './pages/admin/AdminNotifications';
 import AdminBlogs from './pages/admin/AdminBlogs';
 import AdminLeads from './pages/admin/AdminLeads';
 import AdminExamKits from './pages/admin/AdminExamKits';
+import AdminLectures from './pages/admin/AdminLectures';
 
 // Super Admin Pages
 import SuperAdminLayout from './components/superadmin/SuperAdminLayout';
@@ -49,6 +51,7 @@ import StudentExams from './pages/student/StudentExams';
 import ExamRoom from './pages/student/ExamRoom';
 import StudentResults from './pages/student/StudentResults';
 import StudentProfile from './pages/student/StudentProfile';
+import StudentLectures from './pages/student/StudentLectures';
 
 const ProtectedRoute = ({ children, adminOnly = false, superadminOnly = false, superproadminOnly = false }) => {
   const { user, loading } = useAuth();
@@ -82,6 +85,7 @@ export default function App() {
           {/* Public */}
           <Route path="/" element={<HomePage />} />
           <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/lectures" element={<LecturesPage />} />
           <Route path="/store" element={<TestSeriesPage />} />
           <Route path="/test-series" element={<TestSeriesPage />} />
           <Route path="/batches" element={<BatchesPage />} />
@@ -108,6 +112,7 @@ export default function App() {
             <Route path="blogs" element={<AdminBlogs />} />
             <Route path="content" element={<WebsiteContentManager />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="lectures" element={<AdminLectures />} />
           </Route>
 
           {/* Super Admin */}
@@ -136,6 +141,7 @@ export default function App() {
             <Route path="exams" element={<StudentExams />} />
             <Route path="results" element={<StudentResults />} />
             <Route path="profile" element={<StudentProfile />} />
+            <Route path="lectures" element={<StudentLectures />} />
           </Route>
           <Route path="/student/exam/:examId" element={<ProtectedRoute><ExamRoom /></ProtectedRoute>} />
 
