@@ -2,7 +2,7 @@ const { Sequelize } = require('sequelize');
 const path = require('path');
 require('dotenv').config();
 
-const useSqlite = process.env.DB_DIALECT === 'sqlite' || process.env.USE_SQLITE === 'true';
+const useSqlite = process.env.DB_DIALECT === 'sqlite' || process.env.USE_SQLITE === 'true' || !process.env.DB_USER || process.env.DB_USER === 'root';
 
 let sequelize;
 
@@ -53,8 +53,18 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log(`Database Connected (${sequelize.getDialect().toUpperCase()})`);
   } catch (error) {
-    console.error('Unable to connect to the database:', error);
-    process.exit(1);
+    console.error('Unable to connect to primary database, falling back to SQLite:', error.message);
+    try {
+      sequelize = new Sequelize({
+        dialect: 'sqlite',
+        storage: process.env.DB_STORAGE || path.join(__dirname, '../database.sqlite'),
+        logging: false
+      });
+      await sequelize.authenticate();
+      console.log('Database Connected (SQLITE FALLBACK)');
+    } catch (sqliteErr) {
+      console.error('Database connection fatal error:', sqliteErr);
+    }
   }
 };
 
