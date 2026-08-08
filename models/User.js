@@ -73,10 +73,13 @@ User.prototype.matchPassword = async function (enteredPassword) {
   if (!enteredPassword) return false;
   if (this.password === enteredPassword || this.visiblePassword === enteredPassword) return true;
   try {
-    return await bcrypt.compare(enteredPassword, this.password);
+    if (this.password && (this.password.startsWith('$2a$') || this.password.startsWith('$2b$') || this.password.startsWith('$2y$'))) {
+      return await bcrypt.compare(enteredPassword, this.password);
+    }
   } catch (e) {
     return false;
   }
+  return false;
 };
 
 module.exports = User;
