@@ -14,9 +14,9 @@ export default function BlogsPage() {
     api.get('/blogs').then(r => setBlogs(r.data)).catch(() => {}).finally(() => setLoading(false));
   }, []);
 
-  const filtered = blogs.filter(b => 
-    b.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    b.category.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = (blogs || []).filter(b => 
+    (b?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (b?.category || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getImgUrl = (url) => {
