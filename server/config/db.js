@@ -1,15 +1,22 @@
 const { Sequelize } = require('sequelize');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const useSqlite = process.env.DB_DIALECT === 'sqlite' || process.env.USE_SQLITE === 'true' || !process.env.DB_USER || process.env.DB_USER === 'root';
 
 let sequelize;
 
+const sqlitePath = process.env.DB_STORAGE || (
+  fs.existsSync(path.join(__dirname, '../database.sqlite')) ? path.join(__dirname, '../database.sqlite') :
+  fs.existsSync(path.join(process.cwd(), 'database.sqlite')) ? path.join(process.cwd(), 'database.sqlite') :
+  path.join(__dirname, 'database.sqlite')
+);
+
 if (useSqlite) {
   sequelize = new Sequelize({
     dialect: 'sqlite',
-    storage: process.env.DB_STORAGE || path.join(__dirname, '../database.sqlite'),
+    storage: sqlitePath,
     logging: false
   });
 } else if (process.env.DATABASE_URL) {
