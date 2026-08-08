@@ -94,6 +94,24 @@ connectDB().then(async () => {
       // If table doesn't exist, sync already handles it
       console.log('Lectures table check skipped or handled by sync');
     }
+
+    // Verify and migrate Courses table category column type to STRING
+    try {
+      const courseTableInfo = await queryInterface.describeTable('Courses');
+      if (!courseTableInfo.category_migrated) {
+        // 1. Rename old column
+        await queryInterface.renameColumn('Courses', 'category', 'category_old');
+        // 2. Add new category column as STRING
+        await queryInterface.addColumn('Courses', 'category', { type: require('sequelize').DataTypes.STRING, defaultValue: 'Commerce' });
+        // 3. Add helper flag column category_migrated so this runs only once
+        await queryInterface.addColumn('Courses', 'category_migrated', { type: require('sequelize').DataTypes.BOOLEAN, defaultValue: true });
+        // 4. Copy data
+        await sequelize.query('UPDATE Courses SET category = category_old');
+        console.log('Courses category column migrated from ENUM to STRING successfully!');
+      }
+    } catch (courseErr) {
+      console.log('Courses table category migration skipped or already done:', courseErr.message);
+    }
   } catch (colErr) {
     console.error('Error verifying table columns:', colErr.message);
   }

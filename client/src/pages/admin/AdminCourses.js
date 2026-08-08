@@ -16,6 +16,8 @@ export default function AdminCourses() {
   const [preview, setPreview] = useState(null);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
 
   const fetch = async () => {
     const [c, s] = await Promise.all([api.get('/courses'), api.get('/courses/subjects')]);
@@ -29,6 +31,8 @@ export default function AdminCourses() {
     setPreview(null);
     setEditing(null); 
     setModal('form'); 
+    setShowCustomCategoryInput(false);
+    setCustomCategory('');
   };
 
   const openEdit = (item) => { 
@@ -41,6 +45,8 @@ export default function AdminCourses() {
     setSelectedFile(null);
     setPreview(item.image ? (item.image.startsWith('http') ? item.image : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${item.image}`) : null);
     setModal('form'); 
+    setShowCustomCategoryInput(false);
+    setCustomCategory('');
   };
 
   const handleFileSelect = (e) => {
@@ -250,9 +256,63 @@ export default function AdminCourses() {
                   ))}
                   <div>
                     <label className="label">Category</label>
-                    <select {...inp('category')} className="input">
-                      {['School', 'Commerce', 'Professional', 'Competitive'].map(c => <option key={c}>{c}</option>)}
-                    </select>
+                    {!showCustomCategoryInput ? (
+                      <div className="flex gap-2">
+                        <select 
+                          value={form.category || ''} 
+                          onChange={e => {
+                            if (e.target.value === '__add_new__') {
+                              setShowCustomCategoryInput(true);
+                            } else {
+                              setForm(p => ({ ...p, category: e.target.value }));
+                            }
+                          }} 
+                          className="input flex-1"
+                        >
+                          <option value="">Select Category</option>
+                          {Array.from(new Set(['School', 'Commerce', 'Professional', 'Competitive', ...courses.map(c => c.category).filter(Boolean), form.category].filter(Boolean))).map(c => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                          <option value="__add_new__" className="text-primary-600 font-bold font-semibold">+ Create Custom Category</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customCategory}
+                          onChange={e => setCustomCategory(e.target.value)}
+                          placeholder="Type custom category name..."
+                          className="input flex-1"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (customCategory.trim()) {
+                              setForm(p => ({ ...p, category: customCategory.trim() }));
+                              setShowCustomCategoryInput(false);
+                              setCustomCategory('');
+                            } else {
+                              toast.error('Category name cannot be empty');
+                            }
+                          }}
+                          className="btn-primary py-2 px-4 rounded-xl text-xs font-semibold shadow shrink-0"
+                        >
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCustomCategoryInput(false);
+                            setCustomCategory('');
+                          }}
+                          className="btn-secondary py-2 px-4 rounded-xl text-xs font-semibold shrink-0"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="label">Description</label>

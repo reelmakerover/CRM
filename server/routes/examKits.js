@@ -9,13 +9,17 @@ const {
   deleteExamKit,
   createKitOrder,
   getAllOrders,
-  uploadMediaFile
+  uploadMediaFile,
+  getStudentExamKits
 } = require('../controllers/examKitController');
 const { protect, adminOnly } = require('../middleware/auth');
 
 // Public routes
 router.get('/', getPublicExamKits);
 router.post('/order', createKitOrder);
+
+// Student routes
+router.get('/my-kits', protect, getStudentExamKits);
 
 // Admin routes
 router.get('/admin', protect, adminOnly, getAdminExamKits);

@@ -572,7 +572,7 @@ export default function AdminExamKits() {
                   <div className="mt-2 flex items-center gap-2">
                     <div className="w-16 h-10 rounded border overflow-hidden bg-slate-50 flex-shrink-0">
                       <img 
-                        src={form.thumbnailUrl.startsWith('http') ? form.thumbnailUrl : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${form.thumbnailUrl}`} 
+                        src={form.thumbnailUrl.startsWith('http') || form.thumbnailUrl.startsWith('data:') ? form.thumbnailUrl : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${form.thumbnailUrl}`} 
                         alt="Thumbnail preview" 
                         className="w-full h-full object-cover" 
                       />

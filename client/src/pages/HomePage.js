@@ -8,6 +8,20 @@ import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import api from '../utils/api';
 
+/* ─── image helper ─── */
+function getImgSrc(url) {
+  if (!url || typeof url !== 'string') return '';
+  const dataIndex = url.indexOf('data:image/');
+  if (dataIndex !== -1) {
+    return url.substring(dataIndex);
+  }
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (typeof window !== 'undefined' && window.location.port === '3000') {
+    return `${window.location.protocol}//${window.location.hostname}:5000${url.startsWith('/') ? url : '/' + url}`;
+  }
+  return url.startsWith('/') ? url : `/${url}`;
+}
+
 /* ─── animated counter ─── */
 function Counter({ target, suffix = '', duration = 2000 }) {
   const [count, setCount] = useState(0);
@@ -227,7 +241,7 @@ export default function HomePage() {
         ) : (
           <div className="relative w-full h-full flex">
             {slides.map((slide, idx) => {
-              const bgUrl = slide.image ? (slide.image.startsWith('http') ? slide.image : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${slide.image}`) : '';
+              const bgUrl = getImgSrc(slide.image);
               
               // Slide element
               const SlideCard = (
@@ -526,7 +540,7 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {coursesList.map((c, i) => {
-              const cImg = c.image ? (c.image.startsWith('http') ? c.image : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${c.image}`) : null;
+              const cImg = getImgSrc(c.image);
 
               return (
                 <div key={i} className="card overflow-hidden scroll-reveal group cursor-pointer" style={{ animationDelay: `${i * 0.08}s` }}>
@@ -578,7 +592,7 @@ export default function HomePage() {
             {['banner_course_1', 'banner_course_2'].map((key, idx) => {
               const b = settings[key] || {};
               if (b.active === false || !b.image) return null;
-              const bgUrl = b.image.startsWith('http') ? b.image : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${b.image}`;
+              const bgUrl = getImgSrc(b.image);
 
               const BannerCard = (
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl group border border-slate-200/50 bg-slate-900 transition-all duration-300 hover:shadow-2xl hover:scale-[1.01]">
@@ -652,7 +666,7 @@ export default function HomePage() {
               {toppers.map((t, i) => (
                 <div key={t.id || i} className="glass rounded-2xl p-4 text-center scroll-reveal group hover:bg-white/15 transition-all">
                   <div className="w-16 h-16 rounded-full bg-gold-gradient mx-auto mb-3 flex items-center justify-center text-2xl font-bold text-white shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
-                    {t.photo ? <img src={t.photo.startsWith('http') ? t.photo : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${t.photo}`} alt={t.name} className="w-full h-full rounded-full object-cover" /> : t.name[0]}
+                    {t.photo ? <img src={getImgSrc(t.photo)} alt={t.name} className="w-full h-full rounded-full object-cover" /> : t.name[0]}
                   </div>
                   <div className="text-white font-semibold text-sm">{t.name}</div>
                   <div className="text-primary-300 text-xs mt-0.5">{t.course}</div>
@@ -809,7 +823,7 @@ export default function HomePage() {
                 <Link key={blog.id} to={`/blog/${blog.slug}`} className="group scroll-reveal" style={{ animationDelay: `${i * 0.1}s` }}>
                   <div className="rounded-2xl overflow-hidden mb-5 aspect-[16/10] bg-slate-100 shadow-lg">
                     {blog.image ? (
-                      <img src={blog.image.startsWith('http') ? blog.image : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${blog.image}`} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img src={getImgSrc(blog.image)} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-300 bg-slate-100"><FiBook size={40} /></div>
                     )}
@@ -909,7 +923,7 @@ export default function HomePage() {
       {(() => {
         const b = settings.banner_bottom || {};
         if (b.active === false || !b.image) return null;
-        const bgUrl = b.image.startsWith('http') ? b.image : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${b.image}`;
+        const bgUrl = getImgSrc(b.image);
 
         const BannerCard = (
           <div className="relative rounded-3xl overflow-hidden shadow-2xl group border border-slate-700/50 bg-slate-900 transition-all duration-300 hover:scale-[1.01]">

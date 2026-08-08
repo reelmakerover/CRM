@@ -259,6 +259,10 @@ export default function WebsiteContentManager() {
 
   const getImgSrc = (url) => {
     if (!url || typeof url !== 'string') return '';
+    const dataIndex = url.indexOf('data:image/');
+    if (dataIndex !== -1) {
+      return url.substring(dataIndex);
+    }
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
     if (typeof window !== 'undefined' && window.location.port === '3000') {
       return `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${url}`;

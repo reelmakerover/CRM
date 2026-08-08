@@ -1,7 +1,9 @@
 const ExamKit = require('../models/ExamKit');
 const KitOrder = require('../models/KitOrder');
 const Course = require('../models/Course');
-const { sendKitOrderReceipt } = require('../utils/mailer');
+const Student = require('../models/Student');
+const User = require('../models/User');
+const { sendKitOrderReceipt, sendWelcomeCredentials } = require('../utils/mailer');
 
 exports.getPublicExamKits = async (req, res) => {
   try {
@@ -130,6 +132,54 @@ exports.createKitOrder = async (req, res) => {
     // Send order receipt email
     sendKitOrderReceipt({ order, kit }).catch(e => console.error(e.message));
 
+    // Auto-provision student user account if it does not exist
+    try {
+      const emailLower = studentEmail.trim().toLowerCase();
+      let user = await User.findOne({ where: { email: emailLower } });
+      if (!user) {
+        // Create Student
+        const studentCount = await Student.count();
+        const enrollmentNo = `DSE${new Date().getFullYear()}${String(studentCount + 1).padStart(4, '0')}`;
+        
+        const newStudent = await Student.create({
+          enrollmentNo,
+          name: studentName,
+          email: emailLower,
+          phone: studentPhone,
+          courseId: kit.courseId || null,
+          fees: {
+            totalFees: parseFloat(kit.sellingPrice),
+            paidAmount: parseFloat(kit.sellingPrice),
+            pendingAmount: 0,
+            installments: []
+          }
+        });
+
+        // Create User
+        const userPassword = `DSE@${studentPhone?.slice(-4) || '1234'}`;
+        await User.create({
+          name: studentName,
+          email: emailLower,
+          password: userPassword,
+          role: 'student',
+          phone: studentPhone,
+          studentId: newStudent.id
+        });
+
+        // Send Welcome Credentials
+        const courseObj = kit.courseId ? await Course.findByPk(kit.courseId) : null;
+        sendWelcomeCredentials({
+          student: newStudent,
+          email: emailLower,
+          password: userPassword,
+          courseName: courseObj?.name || kit.title,
+          enrollmentNo: newStudent.enrollmentNo
+        }).catch(e => console.error('Background welcome email error for kit buyer:', e.message));
+      }
+    } catch (provisionErr) {
+      console.error('Error auto-provisioning account for kit buyer:', provisionErr.message);
+    }
+
     res.status(201).json({
       message: 'Order placed & confirmed successfully!',
       order,
@@ -183,6 +233,55 @@ exports.uploadMediaFile = async (req, res) => {
     });
   } catch (err) {
     console.error('Error in uploadMediaFile:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// GET EXAM KITS FOR LOGGED-IN STUDENT
+exports.getStudentExamKits = async (req, res) => {
+  try {
+    let courseId = null;
+    let studentEmail = req.user.email ? req.user.email.toLowerCase() : '';
+
+    if (req.user.role === 'student' && req.user.studentId) {
+      const student = await Student.findByPk(req.user.studentId);
+      if (student) {
+        courseId = student.courseId;
+        if (student.email) {
+          studentEmail = student.email.toLowerCase();
+        }
+      }
+    }
+
+    // Find all published exam kits
+    const kits = await ExamKit.findAll({
+      where: { status: 'published' },
+      include: [{ model: Course, as: 'course', attributes: ['id', 'name'] }],
+      order: [['updatedAt', 'DESC']]
+    });
+
+    // Check if student has a completed order for each kit
+    let orderedKitIds = [];
+    if (studentEmail) {
+      const completedOrders = await KitOrder.findAll({
+        where: {
+          studentEmail: studentEmail,
+          paymentStatus: 'completed'
+        }
+      });
+      orderedKitIds = completedOrders.map(o => o.examKitId);
+    }
+
+    // Filter kits: student gets access if the kit is linked to their course OR if they purchased it
+    const authorizedKits = kits.filter(kit => {
+      const isCourseAssigned = courseId && kit.courseId === courseId;
+      const isPurchased = orderedKitIds.includes(kit.id);
+      return isCourseAssigned || isPurchased;
+    });
+
+    res.json(authorizedKits);
+  } catch (err) {
+    console.error('Error in getStudentExamKits:', err);
     res.status(500).json({ message: err.message });
   }
 };

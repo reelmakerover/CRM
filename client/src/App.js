@@ -52,6 +52,7 @@ import ExamRoom from './pages/student/ExamRoom';
 import StudentResults from './pages/student/StudentResults';
 import StudentProfile from './pages/student/StudentProfile';
 import StudentLectures from './pages/student/StudentLectures';
+import StudentExamKits from './pages/student/StudentExamKits';
 
 const ProtectedRoute = ({ children, adminOnly = false, superadminOnly = false, superproadminOnly = false }) => {
   const { user, loading } = useAuth();
@@ -142,6 +143,7 @@ export default function App() {
             <Route path="results" element={<StudentResults />} />
             <Route path="profile" element={<StudentProfile />} />
             <Route path="lectures" element={<StudentLectures />} />
+            <Route path="exam-kits" element={<StudentExamKits />} />
           </Route>
           <Route path="/student/exam/:examId" element={<ProtectedRoute><ExamRoom /></ProtectedRoute>} />
 

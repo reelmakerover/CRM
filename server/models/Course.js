@@ -26,7 +26,7 @@ const Course = sequelize.define('Course', {
     type: DataTypes.DECIMAL(10, 2),
   },
   category: {
-    type: DataTypes.ENUM('School', 'Commerce', 'Professional', 'Competitive'),
+    type: DataTypes.STRING,
     defaultValue: 'Commerce',
   },
   isActive: {

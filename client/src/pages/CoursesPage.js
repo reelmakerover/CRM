@@ -16,12 +16,12 @@ const defaultCourses = [
   { _id: '8', name: 'CMA / CS', code: 'CMACS', category: 'Professional', fees: 22000, duration: '1 Year', description: 'Cost & Management Accounting and Company Secretary foundation with expert guidance.', features: ['Expert faculty', 'Mock exams', 'Study material', 'Personal mentoring', 'Placement support'], icon: '🌟', color: 'from-pink-500 to-pink-700' },
 ];
 
-const categories = ['All', 'School', 'Commerce', 'Professional'];
-
 export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
   const [active, setActive] = useState('All');
   const [loading, setLoading] = useState(true);
+
+  const categories = ['All', ...Array.from(new Set(courses.map(c => c.category).filter(Boolean)))];
 
   useEffect(() => {
     api.get('/courses').then(r => {

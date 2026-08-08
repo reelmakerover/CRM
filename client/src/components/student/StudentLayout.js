@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
-import { FiHome, FiClipboard, FiBarChart2, FiUser, FiLogOut, FiMenu, FiX, FiBook, FiVideo } from 'react-icons/fi';
+import { FiHome, FiClipboard, FiBarChart2, FiUser, FiLogOut, FiMenu, FiX, FiBook, FiVideo, FiGift } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -8,6 +8,7 @@ const NAV = [
   { icon: <FiHome />, label: 'Dashboard', path: '/student/dashboard' },
   { icon: <FiVideo />, label: 'Video Lectures', path: '/student/lectures' },
   { icon: <FiClipboard />, label: 'My Exams', path: '/student/exams' },
+  { icon: <FiGift />, label: 'Exam Kits', path: '/student/exam-kits' },
   { icon: <FiBarChart2 />, label: 'My Results', path: '/student/results' },
   { icon: <FiUser />, label: 'Profile', path: '/student/profile' },
 ];
