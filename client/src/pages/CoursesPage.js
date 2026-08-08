@@ -26,10 +26,20 @@ export default function CoursesPage() {
   useEffect(() => {
     api.get('/courses').then(r => {
       if (r.data.length > 0) {
-        setCourses(r.data.map(c => ({
-          ...c,
-          features: Array.isArray(c.features) ? c.features : (typeof c.features === 'string' ? JSON.parse(c.features) : [])
-        })));
+        setCourses(r.data.map(c => {
+          let feats = [];
+          if (Array.isArray(c.features)) {
+            feats = c.features;
+          } else if (typeof c.features === 'string') {
+            try {
+              feats = JSON.parse(c.features);
+              if (!Array.isArray(feats)) feats = [c.features];
+            } catch (e) {
+              feats = c.features.split(',').map(s => s.trim()).filter(Boolean);
+            }
+          }
+          return { ...c, features: feats };
+        }));
       } else {
         setCourses(defaultCourses);
       }
