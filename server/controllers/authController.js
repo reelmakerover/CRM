@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const { Sequelize } = require('sequelize');
+const { sequelize } = require('../config/db');
 const User = require('../models/User');
 const Student = require('../models/Student');
 const { sendLoginOtp, sendForgotPasswordOtp } = require('../utils/mailer');
@@ -10,9 +12,36 @@ const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 // Login handler
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ where: { email } });
-    if (!user || !(await user.matchPassword(password))) {
+    let { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide email/enrollment ID and password' });
+    }
+    const cleanInput = email.toString().trim();
+    const cleanPass = password.toString().trim();
+
+    let user = await User.findOne({ where: { email: cleanInput } });
+    if (!user) {
+      user = await User.findOne({ 
+        where: sequelize.where(sequelize.fn('LOWER', sequelize.col('email')), cleanInput.toLowerCase()) 
+      });
+    }
+
+    if (!user) {
+      // Check if student identifier was entered (Enrollment No or Phone)
+      const student = await Student.findOne({
+        where: {
+          [Sequelize.Op.or]: [
+            { enrollmentNo: cleanInput },
+            { phone: cleanInput }
+          ]
+        }
+      });
+      if (student && student.email) {
+        user = await User.findOne({ where: { email: student.email } });
+      }
+    }
+
+    if (!user || !(await user.matchPassword(cleanPass))) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 

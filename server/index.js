@@ -35,20 +35,30 @@ app.use('/api/lectures', require('./routes/lectures'));
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: "D's Education Server Running" }));
 
-// Serve static frontend build if present
+// Serve static frontend build with universal fallback
 const fs = require('fs');
 const publicDir = path.join(__dirname, 'public');
 const clientBuildDir = path.join(__dirname, '../client/build');
-const staticDir = fs.existsSync(publicDir) ? publicDir : (fs.existsSync(clientBuildDir) ? clientBuildDir : null);
-if (staticDir) {
-  app.use(express.static(staticDir));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
-    res.sendFile(path.join(staticDir, 'index.html'));
-  });
-}
+const staticDir = fs.existsSync(publicDir) ? publicDir : (fs.existsSync(clientBuildDir) ? clientBuildDir : __dirname);
 
-// Connect DB & Start Server
+app.use('/static', express.static(path.join(__dirname, 'static')));
+app.use('/static', express.static(path.join(publicDir, 'static')));
+app.use(express.static(staticDir));
+app.use(express.static(__dirname));
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+  const htmlFile = fs.existsSync(path.join(publicDir, 'index.html'))
+    ? path.join(publicDir, 'index.html')
+    : (fs.existsSync(path.join(__dirname, 'index.html')) ? path.join(__dirname, 'index.html') : path.join(clientBuildDir, 'index.html'));
+  res.sendFile(htmlFile);
+});
+
+// Start HTTP Server immediately for Passenger
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`D's Education Server running on port ${PORT}`));
+
+// Connect DB & Sync in Background
 connectDB().then(async () => {
   // Sync database safely
   await sequelize.sync();
@@ -191,12 +201,8 @@ connectDB().then(async () => {
   } catch (err) {
     console.error('Failed to ensure default admin credentials on startup:', err.message);
   }
-
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`D's Education Server running on port ${PORT}`));
 }).catch(err => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
+  console.error('Database connection error:', err);
 });
 
 module.exports = app;

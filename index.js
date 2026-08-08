@@ -54,7 +54,11 @@ app.get('*', (req, res, next) => {
   res.sendFile(htmlFile);
 });
 
-// Connect DB & Start Server
+// Start HTTP Server immediately for Passenger
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`D's Education Server running on port ${PORT}`));
+
+// Connect DB & Sync in Background
 connectDB().then(async () => {
   // Sync database safely
   await sequelize.sync();
@@ -197,12 +201,8 @@ connectDB().then(async () => {
   } catch (err) {
     console.error('Failed to ensure default admin credentials on startup:', err.message);
   }
-
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`D's Education Server running on port ${PORT}`));
 }).catch(err => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
+  console.error('Database connection error:', err);
 });
 
 module.exports = app;
