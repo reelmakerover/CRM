@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiSave, FiEye, FiImage, FiUpload, FiLink } from 'react-icons/fi';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
+import RichTextEditor from '../../components/admin/RichTextEditor';
 
 const EMPTY = { title: '', content: '', category: 'Education', author: 'Admin', isPublished: true, tags: '', image: '' };
 
@@ -138,17 +139,22 @@ export default function AdminBlogs() {
       </div>
 
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-10 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-auto overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl my-auto overflow-hidden border border-slate-100">
             <div className="flex items-center justify-between p-5 border-b bg-slate-50">
               <h2 className="font-bold text-slate-900 text-lg">{editing ? 'Edit Article' : 'Write New Article'}</h2>
               <button onClick={() => setModal(false)} className="p-1.5 hover:bg-slate-200 rounded-lg"><FiX /></button>
             </div>
 
-            <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <div className="p-6 space-y-5 max-h-[78vh] overflow-y-auto">
               {/* DUAL IMAGE INPUT (URL + FILE UPLOAD) */}
               <div className="p-4 bg-slate-50 border rounded-2xl space-y-3">
-                <label className="label text-xs font-bold text-slate-700 uppercase tracking-wider">Article Cover Image</label>
+                <div className="flex items-center justify-between">
+                  <label className="label text-xs font-bold text-slate-700 uppercase tracking-wider mb-0">Article Cover Image</label>
+                  <span className="text-[11px] font-semibold text-primary-600 bg-primary-50 px-2.5 py-0.5 rounded-full border border-primary-100">
+                    Recommended: 1200 × 630 px (16:9)
+                  </span>
+                </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4">
                   <div className="w-36 h-24 rounded-xl bg-slate-900 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group flex-shrink-0">
@@ -178,6 +184,10 @@ export default function AdminBlogs() {
                       />
                     </div>
                   </div>
+                </div>
+                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-200/60">
+                  <span>📏 Min: 800 × 450 px</span>
+                  <span>📁 Max Size: 5MB (JPG, PNG, WEBP)</span>
                 </div>
               </div>
 
@@ -210,8 +220,15 @@ export default function AdminBlogs() {
               </div>
 
               <div>
-                <label className="label">Full Article Content (HTML / Markdown / Text) *</label>
-                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })} rows={9} className="input font-mono text-xs leading-relaxed" placeholder="Write full article here..." required />
+                <label className="label flex items-center justify-between">
+                  <span>Full Article Content *</span>
+                  <span className="text-[11px] font-normal text-slate-400">Rich Text / CKEditor Mode</span>
+                </label>
+                <RichTextEditor
+                  value={form.content}
+                  onChange={(content) => setForm(p => ({ ...p, content }))}
+                  placeholder="Write or format full article content here with headings, lists, bold, links, etc..."
+                />
               </div>
 
               <div>
