@@ -12,6 +12,7 @@ router.put('/:id', protect, adminOnly, ctrl.updateExam);
 router.delete('/:id', protect, adminOnly, ctrl.deleteExam);
 
 // Question management
+router.get('/questions/template', protect, adminOnly, ctrl.getQuestionTemplate);
 router.get('/questions', protect, ctrl.getQuestions);
 router.post('/questions', protect, adminOnly, ctrl.addQuestion);
 router.put('/questions/:id', protect, adminOnly, ctrl.updateQuestion);

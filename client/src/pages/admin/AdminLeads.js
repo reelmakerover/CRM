@@ -291,7 +291,11 @@ export default function AdminLeads() {
                   {/* Student Info */}
                   <td>
                     <div className="font-bold text-sm text-slate-900">{l.name}</div>
-                    <div className="text-[11px] text-slate-400">Total Calls: {l.callCount || 1}</div>
+                    {l.email && <div className="text-[11px] text-slate-500 truncate max-w-[180px]">{l.email}</div>}
+                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                      {l.city && <span className="text-[11px] text-indigo-600 font-semibold">📍 {l.city}</span>}
+                      {l.source && <span className="badge bg-indigo-100 text-indigo-800 text-[10px] px-1.5 py-0.2 rounded font-bold">{l.source}</span>}
+                    </div>
                   </td>
 
                   {/* Phone */}

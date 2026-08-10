@@ -94,23 +94,51 @@ export default function AdminQuestions() {
     const file = e.target.files[0];
     if (!file) return;
     setImporting(true);
+    setImportResult(null);
     const fd = new FormData();
     fd.append('file', file);
     try {
       const { data } = await api.post('/exams/questions/import', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       setImportResult(data);
-      toast.success(`Imported ${data.imported} questions`);
-      fetch();
-    } catch (err) { toast.error(err.response?.data?.message || 'Import failed'); }
-    finally { setImporting(false); e.target.value = ''; }
+      if (data.imported > 0) {
+        toast.success(data.message || `Successfully imported ${data.imported} questions!`);
+        fetch();
+      } else {
+        toast.error(data.message || 'No questions were imported. Please review errors below.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Import failed. Please check file format.');
+    } finally {
+      setImporting(false);
+      e.target.value = '';
+    }
   };
 
-  const downloadTemplate = () => {
-    const header = 'Question,Option A,Option B,Option C,Option D,Correct Answer,Course,Subject,Difficulty\n';
-    const sample = 'Which concept states assets = liabilities + capital?,Assets,Capital,Liabilities,Equity,A,CA Foundation,Accounting,medium\n';
-    const blob = new Blob([header + sample], { type: 'text/csv' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'DS_Questions_Template.csv'; a.click();
+  const downloadTemplate = async () => {
+    try {
+      const res = await api.get('/exams/questions/template', { responseType: 'blob' });
+      const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'DS_Questions_Template.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      toast.success('Template downloaded (.xlsx)');
+    } catch (err) {
+      // Fallback CSV template
+      const header = 'Question,Option A,Option B,Option C,Option D,Correct Answer,Course,Subject,Difficulty,Marks,Explanation\n';
+      const sample1 = '"Which concept states assets = liabilities + capital?","Assets","Capital","Liabilities","Equity","A","12th Commerce","Accountancy","medium","1","Basic Accounting Equation"\n';
+      const sample2 = '"Which concept requires revenue recognition when earned?","Matching","Revenue Recognition","Going Concern","Cost","B","CA Foundation","Principles and Practice of Accounting","medium","1","Revenue realization concept"\n';
+      const blob = new Blob([header + sample1 + sample2], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'DS_Questions_Template.csv';
+      a.click();
+      toast.success('CSV Template downloaded');
+    }
   };
 
   const inp = (f) => ({ value: form[f] ?? '', onChange: e => setForm(p => ({ ...p, [f]: e.target.value })) });
@@ -124,42 +152,68 @@ export default function AdminQuestions() {
           <p className="text-slate-500 text-sm">{questions.length} questions in database</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button onClick={downloadTemplate} className="btn-secondary py-2 px-4 text-sm"><FiDownload size={14}/> Template</button>
-          <label className={`btn-secondary py-2 px-4 text-sm cursor-pointer ${importing ? 'opacity-50' : ''}`}>
-            <FiUpload size={14}/> {importing ? 'Importing...' : 'Import Excel'}
+          <button onClick={downloadTemplate} className="btn-secondary py-2 px-4 text-sm flex items-center gap-1.5 shadow-sm">
+            <FiDownload size={15}/> Download Excel Template
+          </button>
+          <label className={`btn-secondary py-2 px-4 text-sm cursor-pointer flex items-center gap-1.5 shadow-sm ${importing ? 'opacity-50 pointer-events-none' : ''}`}>
+            <FiUpload size={15}/> {importing ? 'Importing Excel...' : 'Import Excel (.xlsx/.csv)'}
             <input type="file" accept=".xlsx,.xls,.csv" onChange={handleImport} className="hidden" disabled={importing} />
           </label>
-          <button onClick={openAdd} className="btn-primary py-2 px-4 text-sm"><FiPlus /> Add Question</button>
+          <button onClick={openAdd} className="btn-primary py-2 px-4 text-sm flex items-center gap-1.5 shadow-sm">
+            <FiPlus size={16} /> Add Question
+          </button>
         </div>
       </div>
 
-      {/* Import Result */}
+      {/* Import Result Feedback */}
       {importResult && (
-        <div className="card p-4 border-l-4 border-emerald-500 bg-emerald-50">
-          <div className="flex items-start justify-between">
+        <div className={`card p-4 border-l-4 ${importResult.imported > 0 ? 'border-emerald-500 bg-emerald-50/70' : 'border-rose-500 bg-rose-50/70'}`}>
+          <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="font-semibold text-emerald-800">Import Complete</div>
-              <div className="text-sm text-emerald-700">✓ {importResult.imported} imported successfully out of {importResult.total} total</div>
-              {importResult.errors.length > 0 && (
-                <div className="mt-2 text-xs text-rose-600 space-y-1">
-                  {importResult.errors.slice(0, 3).map((e, i) => <div key={i}>{e}</div>)}
+              <div className={`font-semibold ${importResult.imported > 0 ? 'text-emerald-900' : 'text-rose-900'}`}>
+                {importResult.imported > 0 ? '🎉 Import Summary' : '⚠️ Import Needs Attention'}
+              </div>
+              <div className={`text-sm mt-1 ${importResult.imported > 0 ? 'text-emerald-800' : 'text-rose-800'}`}>
+                ✓ <strong>{importResult.imported}</strong> questions imported successfully out of <strong>{importResult.total}</strong> total rows.
+              </div>
+              {importResult.errors && importResult.errors.length > 0 && (
+                <div className="mt-3 p-3 bg-white/80 rounded-lg border border-rose-200 text-xs text-rose-700 space-y-1 max-h-40 overflow-y-auto font-mono">
+                  <div className="font-semibold text-rose-800 mb-1">Issue Details ({importResult.errors.length}):</div>
+                  {importResult.errors.map((e, i) => (
+                    <div key={i} className="flex items-start gap-1">
+                      <span>•</span><span>{e}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-            <button onClick={() => setImportResult(null)} className="text-emerald-600 hover:text-emerald-800"><FiX size={16}/></button>
+            <button onClick={() => setImportResult(null)} className="text-slate-400 hover:text-slate-700 p-1 rounded">
+              <FiX size={18}/>
+            </button>
           </div>
         </div>
       )}
 
       {/* Excel Format Guide */}
-      <div className="card p-4 bg-blue-50 border border-blue-200">
-        <div className="font-semibold text-blue-900 text-sm mb-2">📊 Excel Import Format</div>
-        <div className="grid grid-cols-3 md:grid-cols-9 gap-1">
-          {['Question','Option A','Option B','Option C','Option D','Correct Answer','Course','Subject','Difficulty'].map(h => (
-            <div key={h} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-mono text-center">{h}</div>
+      <div className="card p-4 bg-gradient-to-r from-blue-50/80 to-indigo-50/60 border border-blue-200">
+        <div className="flex items-center justify-between mb-2">
+          <div className="font-semibold text-blue-900 text-sm flex items-center gap-2">
+            <span>📊 Supported Excel / CSV Header Columns</span>
+          </div>
+          <button onClick={downloadTemplate} className="text-xs text-blue-700 hover:text-blue-900 font-medium underline flex items-center gap-1">
+            <FiDownload size={12}/> Get Pre-filled Sample
+          </button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-11 gap-1.5">
+          {['Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Correct Answer', 'Course', 'Subject', 'Difficulty', 'Marks', 'Explanation'].map(h => (
+            <div key={h} className="bg-white/80 text-blue-900 text-xs px-2 py-1.5 rounded border border-blue-200 font-medium text-center shadow-xs">
+              {h}
+            </div>
           ))}
         </div>
-        <p className="text-blue-700 text-xs mt-2">Correct Answer: A/B/C/D · Course & Subject must match exactly · Difficulty: easy/medium/hard</p>
+        <p className="text-blue-700 text-xs mt-2.5 leading-relaxed">
+          ✨ <strong>Smart Import:</strong> Correct Answer can be <code className="bg-blue-100 px-1 py-0.5 rounded">A, B, C, D</code> or <code className="bg-blue-100 px-1 py-0.5 rounded">1, 2, 3, 4</code>. Course & Subject are auto-detected and created if not existing.
+        </p>
       </div>
 
       {/* Filters */}

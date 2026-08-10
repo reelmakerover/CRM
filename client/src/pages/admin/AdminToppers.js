@@ -112,6 +112,8 @@ export default function AdminToppers() {
                   <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} id="topper-photo" />
                 </div>
                 <label htmlFor="topper-photo" className="text-primary-600 text-xs font-semibold cursor-pointer hover:underline">Upload Photo</label>
+                <p className="text-[11px] text-slate-500 mt-1 font-medium">Recommended: <span className="font-semibold text-slate-700">500 × 500 px</span> (1:1 Square)</p>
+                <p className="text-[10px] text-slate-400">Min: 200 × 200 px • JPG, PNG, WEBP (Max 2MB)</p>
               </div>
 
               {[{f:'name',l:'Full Name *'},{f:'course',l:'Course *'},{f:'marks',l:'Marks (e.g. 97%)'},{f:'percentage',l:'Percentage'},{f:'rank',l:'Rank (e.g. AIR 1)'},{f:'year',l:'Year'}].map(({f,l})=>(

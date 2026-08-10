@@ -122,6 +122,33 @@ connectDB().then(async () => {
     } catch (courseErr) {
       console.log('Courses table category migration skipped or already done:', courseErr.message);
     }
+    // Ensure columns exist in Exams table
+    try {
+      const examTableInfo = await queryInterface.describeTable('Exams');
+      if (!examTableInfo.isPublic) {
+        await queryInterface.addColumn('Exams', 'isPublic', { type: require('sequelize').DataTypes.BOOLEAN, defaultValue: false });
+      }
+      console.log('Exams columns verified');
+    } catch (examColErr) {
+      console.log('Exams table column check skipped');
+    }
+
+    // Ensure columns exist in Leads table
+    try {
+      const leadTableInfo = await queryInterface.describeTable('Leads');
+      if (!leadTableInfo.city) {
+        await queryInterface.addColumn('Leads', 'city', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+      }
+      if (!leadTableInfo.score) {
+        await queryInterface.addColumn('Leads', 'score', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+      }
+      if (!leadTableInfo.source) {
+        await queryInterface.addColumn('Leads', 'source', { type: require('sequelize').DataTypes.STRING, defaultValue: 'Website' });
+      }
+      console.log('Leads columns verified');
+    } catch (leadColErr) {
+      console.log('Leads table column check skipped');
+    }
   } catch (colErr) {
     console.error('Error verifying table columns:', colErr.message);
   }

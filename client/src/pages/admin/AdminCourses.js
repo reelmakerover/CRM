@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiSave, FiBookOpen, FiImage, FiUploadCloud } from 'react-icons/fi';
-import api from '../../utils/api';
+import api, { getImgSrc } from '../../utils/api';
 import toast from 'react-hot-toast';
 
 const EMPTY_COURSE = { name: '', code: '', description: '', duration: '', fees: '', category: 'Commerce', image: '' };
@@ -14,6 +14,7 @@ export default function AdminCourses() {
   const [form, setForm] = useState(EMPTY_COURSE);
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [imageMeta, setImageMeta] = useState(null);
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [showCustomCategoryInput, setShowCustomCategoryInput] = useState(false);
@@ -29,6 +30,7 @@ export default function AdminCourses() {
     setForm(tab === 'courses' ? EMPTY_COURSE : EMPTY_SUBJECT); 
     setSelectedFile(null);
     setPreview(null);
+    setImageMeta(null);
     setEditing(null); 
     setModal('form'); 
     setShowCustomCategoryInput(false);
@@ -43,7 +45,8 @@ export default function AdminCourses() {
     }); 
     setEditing(item); 
     setSelectedFile(null);
-    setPreview(item.image ? (item.image.startsWith('http') ? item.image : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${item.image}`) : null);
+    setImageMeta(null);
+    setPreview(item.image ? (item.image.startsWith('http') || item.image.startsWith('data:') ? item.image : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${item.image}`) : null);
     setModal('form'); 
     setShowCustomCategoryInput(false);
     setCustomCategory('');
@@ -52,40 +55,56 @@ export default function AdminCourses() {
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        return toast.error('Image size must be less than 5 MB');
+      }
       setSelectedFile(file);
-      setPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64Url = event.target.result;
+        setPreview(base64Url);
+        setForm(p => ({ ...p, image: base64Url }));
+
+        const img = new Image();
+        img.onload = () => {
+          setImageMeta({
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+            size: (file.size / 1024).toFixed(1) + ' KB'
+          });
+        };
+        img.src = base64Url;
+      };
+      reader.readAsDataURL(file);
     }
+  };
+
+  const removeImage = (e) => {
+    e.stopPropagation();
+    setSelectedFile(null);
+    setPreview(null);
+    setImageMeta(null);
+    setForm(p => ({ ...p, image: '' }));
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
       if (tab === 'courses') {
-        const formData = new FormData();
-        Object.keys(form).forEach(key => {
-          if (key === 'features') {
-            const feats = typeof form.features === 'string' ? form.features.split('\n').filter(Boolean) : form.features;
-            formData.append('features', JSON.stringify(feats));
-          } else if (key !== 'image') {
-            formData.append(key, form[key] ?? '');
-          }
-        });
-
-        if (selectedFile) {
-          formData.append('image', selectedFile);
-        } else if (form.image) {
-          formData.append('image', form.image);
-        }
+        const payload = {
+          ...form,
+          features: typeof form.features === 'string' ? form.features.split('\n').filter(Boolean) : form.features
+        };
 
         editing 
-          ? await api.put(`/courses/${editing.id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }) 
-          : await api.post('/courses', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+          ? await api.put(`/courses/${editing.id}`, payload) 
+          : await api.post('/courses', payload);
       } else {
         editing ? await api.put(`/courses/subjects/${editing.id}`, form) : await api.post('/courses/subjects', form);
       }
-      toast.success(editing ? 'Updated!' : 'Created!');
+      toast.success(editing ? 'Course updated successfully!' : 'Course created successfully!');
       fetch(); setModal(null);
-    } catch (err) { toast.error(err.response?.data?.message || 'Error'); }
+    } catch (err) { toast.error(err.response?.data?.message || 'Error saving course'); }
     finally { setSaving(false); }
   };
 
@@ -101,15 +120,6 @@ export default function AdminCourses() {
     value: form[field] ?? '',
     onChange: e => setForm(p => ({ ...p, [field]: e.target.value }))
   });
-
-  const getImgSrc = (url) => {
-    if (!url || typeof url !== 'string') return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    if (typeof window !== 'undefined' && window.location.port === '3000') {
-      return `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${url}`;
-    }
-    return url.startsWith('/') ? url : `/${url}`;
-  };
 
   const courseFields = [
     { label: 'Course Name *', field: 'name', type: 'text' },
@@ -153,6 +163,7 @@ export default function AdminCourses() {
                     <img 
                       src={courseImg} 
                       alt={c.name} 
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                     />
                   ) : (
@@ -228,20 +239,60 @@ export default function AdminCourses() {
                 <>
                   {/* Course Banner Image Upload */}
                   <div>
-                    <label className="label">Course Header Banner Image</label>
-                    <div className="relative rounded-xl overflow-hidden bg-slate-100 border-2 border-dashed border-slate-300 h-36 flex flex-col items-center justify-center cursor-pointer hover:border-primary-500 transition-all">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="label mb-0 font-semibold text-slate-800">Course Header Banner Image</label>
+                      <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                        💾 Database Storage
+                      </span>
+                    </div>
+
+                    {/* Resolution & Size Specification Guide Box */}
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl mb-2 text-xs text-slate-600 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-700">📐 Recommended Resolution:</span>
+                        <span className="font-mono font-bold text-primary-700 bg-white px-2 py-0.5 rounded border border-slate-200">1200 × 630 px (16:9)</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span>📏 Min Resolution: 800 × 450 px</span>
+                        <span>📁 Max Size: <strong>5 MB</strong> (JPG, PNG, WEBP)</span>
+                      </div>
+                    </div>
+
+                    {/* Upload Dropzone */}
+                    <div className="relative rounded-2xl overflow-hidden bg-slate-50 border-2 border-dashed border-slate-300 hover:border-primary-500 h-44 flex flex-col items-center justify-center cursor-pointer transition-all group">
                       {preview ? (
-                        <img src={preview} alt="Course Preview" className="w-full h-full object-cover" />
+                        <div className="relative w-full h-full">
+                          <img src={preview} alt="Course Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <span className="btn-primary text-xs py-1.5 px-3 shadow">Change Image</span>
+                            <button 
+                              type="button" 
+                              onClick={removeImage}
+                              className="p-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow text-xs font-semibold"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          {imageMeta && (
+                            <div className="absolute bottom-2 left-2 bg-slate-900/85 backdrop-blur-md text-white text-[11px] px-2.5 py-1 rounded-lg font-mono flex items-center gap-1.5 shadow">
+                              <span>📐 {imageMeta.width} × {imageMeta.height} px</span>
+                              <span>•</span>
+                              <span>📦 {imageMeta.size}</span>
+                            </div>
+                          )}
+                        </div>
                       ) : (
-                        <div className="text-center text-slate-400 p-4">
-                          <FiUploadCloud className="mx-auto text-3xl mb-1 text-primary-500" />
-                          <span className="text-xs font-semibold text-slate-600">Click to upload course image</span>
-                          <p className="text-[10px] text-slate-400 mt-0.5">JPG, PNG or WEBP format</p>
+                        <div className="text-center p-4">
+                          <div className="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform">
+                            <FiUploadCloud size={24} />
+                          </div>
+                          <span className="text-xs font-bold text-slate-800 block">Click to upload course banner image</span>
+                          <p className="text-[11px] text-slate-400 mt-1">Image will be saved directly into the database</p>
                         </div>
                       )}
                       <input 
                         type="file" 
-                        accept="image/*" 
+                        accept="image/png, image/jpeg, image/webp, image/jpg" 
                         onChange={handleFileSelect}
                         className="absolute inset-0 opacity-0 cursor-pointer" 
                       />

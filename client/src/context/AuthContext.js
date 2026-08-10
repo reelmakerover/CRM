@@ -38,6 +38,16 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const register = async (userData) => {
+    const { data } = await axios.post('/api/auth/register', userData);
+    localStorage.setItem('ds_token', data.token);
+    localStorage.setItem('ds_user', JSON.stringify(data));
+    axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+    setUser(data);
+    setStudent(data.student || null);
+    return data;
+  };
+
   const verifyLoginOtp = async (email, otp) => {
     const { data } = await axios.post('/api/auth/verify-login-otp', { email, otp });
     localStorage.setItem('ds_token', data.token);
@@ -91,6 +101,7 @@ export const AuthProvider = ({ children }) => {
       student, 
       loading, 
       login, 
+      register,
       verifyLoginOtp, 
       forgotPassword, 
       resetPassword, 

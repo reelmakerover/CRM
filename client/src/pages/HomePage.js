@@ -11,7 +11,7 @@ import api from '../utils/api';
 /* ─── image helper ─── */
 function getImgSrc(url) {
   if (!url || typeof url !== 'string') return '';
-  const dataIndex = url.indexOf('data:image/');
+  const dataIndex = url.indexOf('data:');
   if (dataIndex !== -1) {
     return url.substring(dataIndex);
   }
@@ -480,6 +480,7 @@ export default function HomePage() {
               </div>
               <Link to="/login" className="btn-primary mt-6 px-8">Start Your Test <FiArrowRight /></Link>
             </div>
+
             {/* Visual */}
             <div className="scroll-reveal">
               <div className="bg-gradient-to-br from-slate-900 to-primary-900 rounded-3xl p-6 shadow-2xl">
@@ -538,49 +539,115 @@ export default function HomePage() {
             <h2 className="section-title">Courses Offered</h2>
             <p className="section-subtitle">Comprehensive commerce education from school level to professional certification</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {coursesList.map((c, i) => {
               const cImg = getImgSrc(c.image);
+              const visibleFeatures = Array.isArray(c.features) ? c.features.slice(0, 3) : [];
+              const extraCount = Array.isArray(c.features) && c.features.length > 3 ? c.features.length - 3 : 0;
+              
+              // Dynamic thematic palette for courses without custom image
+              const tit = (c.title || '').toLowerCase();
+              const isPro = tit.includes('ca') || tit.includes('cma') || tit.includes('cs') || (c.badge || '').toLowerCase().includes('pro');
+              const isSchool = tit.includes('12th') || tit.includes('11th') || tit.includes('10th') || (c.badge || '').toLowerCase().includes('school');
+              const isDegree = tit.includes('bcom') || tit.includes('bba') || tit.includes('mcom');
+
+              const gradientClass = isPro 
+                ? 'from-amber-600 via-rose-800 to-slate-950' 
+                : isSchool 
+                ? 'from-blue-600 via-indigo-800 to-slate-950' 
+                : isDegree 
+                ? 'from-emerald-600 via-teal-800 to-slate-950' 
+                : 'from-primary-700 via-indigo-900 to-slate-950';
+
+              const icon = isPro ? '🏆' : isSchool ? '📚' : isDegree ? '🎓' : (c.icon || '📘');
 
               return (
-                <div key={i} className="card overflow-hidden scroll-reveal group cursor-pointer" style={{ animationDelay: `${i * 0.08}s` }}>
-                  <div className="h-44 bg-gradient-to-br from-primary-600 via-primary-700 to-indigo-800 relative overflow-hidden">
+                <div 
+                  key={i} 
+                  className="flex flex-col h-full bg-white rounded-3xl border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_35px_-8px_rgba(30,58,138,0.18)] hover:-translate-y-1.5 transition-all duration-300 overflow-hidden group"
+                  style={{ animationDelay: `${i * 0.08}s` }}
+                >
+                  {/* Banner Header */}
+                  <div className={`h-52 bg-gradient-to-br ${gradientClass} relative overflow-hidden shrink-0 flex items-center justify-center`}>
                     {cImg ? (
                       <img 
                         src={cImg} 
                         alt={c.title} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl text-white/80">
-                        {c.icon || '📘'}
-                      </div>
+                      <>
+                        {/* Decorative Graphic Background & Watermark */}
+                        <div className="absolute inset-0 opacity-15 select-none flex items-center justify-center overflow-hidden">
+                          <span className="font-display font-black text-6xl tracking-widest text-white uppercase whitespace-nowrap">
+                            {c.title?.split(' ')[0] || 'COMMERCE'}
+                          </span>
+                        </div>
+                        <div className="relative z-10 w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-md border border-white/30 flex items-center justify-center text-3xl shadow-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                          {icon}
+                        </div>
+                      </>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20" />
-                    <span className="absolute top-3 right-3 badge bg-slate-900/80 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 border border-white/20">
-                      {c.badge}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+                    
+                    {/* Category Badge */}
+                    <span className="absolute top-3.5 right-3.5 badge bg-slate-900/80 backdrop-blur-md text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-white/20 shadow-md">
+                      {c.badge || 'Commerce'}
+                    </span>
+
+                    {/* Batch Mode Pill */}
+                    <span className="absolute bottom-3.5 left-3.5 bg-black/40 backdrop-blur-md text-white/90 text-[11px] font-medium px-2.5 py-0.5 rounded-lg border border-white/10 flex items-center gap-1.5 shadow-sm">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Live & Classroom
                     </span>
                   </div>
-                  <div className="p-5">
-                    <h3 className="font-semibold text-slate-900 mb-1.5">{c.title}</h3>
-                    <p className="text-slate-500 text-sm mb-4 line-clamp-2">{c.desc}</p>
-                    <ul className="space-y-1.5">
-                      {c.features.map(f => (
-                        <li key={f} className="flex items-center gap-2 text-xs text-slate-600">
-                          <FiCheck className="text-primary-500 flex-shrink-0" /> {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <Link to="/batches" className="mt-4 flex items-center gap-1 text-primary-600 text-sm font-semibold hover:gap-2 transition-all">
-                      Enroll Now <FiArrowRight className="text-xs" />
-                    </Link>
+
+                  {/* Card Content Body */}
+                  <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-display font-bold text-slate-900 text-xl group-hover:text-primary-600 transition-colors line-clamp-1">
+                        {c.title}
+                      </h3>
+                      <p className="text-slate-500 text-xs sm:text-sm mt-2 mb-4 line-clamp-2 min-h-[38px] leading-relaxed">
+                        {c.desc || 'Comprehensive conceptual coaching with regular test series, doubt sessions & printed study materials.'}
+                      </p>
+
+                      {/* Key Features */}
+                      <ul className="space-y-2.5">
+                        {visibleFeatures.map((f, idx) => (
+                          <li key={idx} className="flex items-center gap-2.5 text-xs sm:text-sm text-slate-600">
+                            <span className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] font-bold shrink-0">✓</span>
+                            <span className="line-clamp-1 font-medium">{f}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {extraCount > 0 && (
+                        <p className="text-[11px] font-semibold text-primary-600 mt-2.5 ml-6">
+                          + {extraCount} more benefits & materials included
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Footer CTA Button */}
+                    <div className="mt-6 pt-4 border-t border-slate-100">
+                      <Link 
+                        to="/batches" 
+                        className="w-full py-3 px-5 rounded-2xl bg-gradient-to-r from-primary-600 via-primary-700 to-indigo-700 hover:from-primary-700 hover:to-indigo-800 text-white font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-xl hover:shadow-primary-500/25 group/btn"
+                      >
+                        <span>Enroll in Course</span>
+                        <FiArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
+                      </Link>
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
-          <div className="text-center mt-10">
-            <Link to="/courses" className="btn-primary px-8">View All Courses <FiArrowRight /></Link>
+          <div className="text-center mt-12">
+            <Link to="/courses" className="btn-primary px-8 py-3.5 text-sm font-bold shadow-lg">
+              View All Courses <FiArrowRight className="ml-1" />
+            </Link>
           </div>
         </div>
 

@@ -1,26 +1,43 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FiBook, FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, FiShield, FiKey, FiArrowLeft, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { 
+  FiBook, FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight, 
+  FiShield, FiKey, FiArrowLeft, FiCheckCircle, FiRefreshCw, 
+  FiUser, FiPhone, FiMapPin, FiLayers, FiZap 
+} from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
+import api from '../utils/api';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
-  // Mode: 'login' | '2fa' | 'forgot_email' | 'forgot_reset'
-  const [mode, setMode] = useState('login');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
 
-  // Form states
+  // Mode: 'login' | 'register' | '2fa' | 'forgot_email' | 'forgot_reset'
+  const [mode, setMode] = useState(initialMode);
+
+  // Login Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Register Form states
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPhone, setRegPhone] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regCity, setRegCity] = useState('');
   
   const [show, setShow] = useState(false);
+  const [showRegPass, setShowRegPass] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
 
-  const { login, verifyLoginOtp, forgotPassword, resetPassword, resendOtp } = useAuth();
+  const { login, register, verifyLoginOtp, forgotPassword, resetPassword, resendOtp } = useAuth();
   const navigate = useNavigate();
 
   // Step 1: Initial Login Submit
@@ -41,6 +58,34 @@ export default function LoginPage() {
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 1.5: Student Self-Registration Submit
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    if (!regName.trim() || !regEmail.trim() || !regPassword.trim()) {
+      return toast.error('Please fill in all required fields');
+    }
+    if (regPassword.length < 6) {
+      return toast.error('Password must be at least 6 characters');
+    }
+    setLoading(true);
+    try {
+      const res = await register({
+        name: regName.trim(),
+        email: regEmail.trim(),
+        phone: regPhone.trim(),
+        password: regPassword.trim(),
+        city: regCity.trim()
+      });
+      toast.success(`🎉 Account created successfully! Welcome, ${res.name}`);
+      navigate('/student/dashboard');
+    } catch (err) {
+      const msg = err.response?.data?.message || (err.message === 'Network Error' ? 'Server is offline. Please ensure backend is running.' : 'Registration failed. Please try again.');
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -144,7 +189,35 @@ export default function LoginPage() {
         </div>
 
         {/* Main Card */}
-        <div className="glass rounded-3xl p-8 shadow-glass transition-all duration-300">
+        <div className="glass rounded-3xl p-7 sm:p-8 shadow-glass transition-all duration-300">
+
+          {/* Top Tabs: Login vs Register (only when in login/register modes) */}
+          {(mode === 'login' || mode === 'register') && (
+            <div className="grid grid-cols-2 bg-white/10 p-1 rounded-2xl mb-6 border border-white/15">
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all ${
+                  mode === 'login' 
+                    ? 'bg-gold-400 text-slate-950 shadow-md' 
+                    : 'text-primary-200 hover:text-white'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('register')}
+                className={`py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all ${
+                  mode === 'register' 
+                    ? 'bg-gold-400 text-slate-950 shadow-md' 
+                    : 'text-primary-200 hover:text-white'
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
+          )}
 
           {/* MODE 1: Standard Login */}
           {mode === 'login' && (
@@ -152,22 +225,22 @@ export default function LoginPage() {
               <h2 className="text-white font-semibold text-xl mb-1">Welcome Back</h2>
               <p className="text-primary-300 text-sm mb-6">Sign in to access your CRM & Portal</p>
 
-              <form onSubmit={handleLoginSubmit} className="space-y-5">
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-primary-200 text-sm font-medium mb-2">Email Address</label>
+                  <label className="block text-primary-200 text-xs font-medium mb-1.5">Email / Enrollment ID</label>
                   <div className="relative">
                     <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-primary-400" />
                     <input
-                      type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                      placeholder="your@email.com"
-                      className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-11 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-primary-400 focus:bg-white/15 transition-all"
+                      type="text" value={email} onChange={e => setEmail(e.target.value)} required
+                      placeholder="Email or Enrollment No"
+                      className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-11 pr-4 py-3 rounded-xl focus:outline-none focus:border-primary-400 focus:bg-white/15 transition-all text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="block text-primary-200 text-sm font-medium">Password</label>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="block text-primary-200 text-xs font-medium">Password</label>
                     <button
                       type="button"
                       onClick={() => setMode('forgot_email')}
@@ -181,7 +254,7 @@ export default function LoginPage() {
                     <input
                       type={show ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
                       placeholder="Your password"
-                      className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-11 pr-12 py-3.5 rounded-xl focus:outline-none focus:border-primary-400 focus:bg-white/15 transition-all"
+                      className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-11 pr-12 py-3 rounded-xl focus:outline-none focus:border-primary-400 focus:bg-white/15 transition-all text-sm"
                     />
                     <button type="button" onClick={() => setShow(!show)}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-400 hover:text-white transition-colors">
@@ -191,7 +264,7 @@ export default function LoginPage() {
                 </div>
 
                 <button type="submit" disabled={loading}
-                  className="w-full btn-gold py-4 justify-center text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="w-full btn-gold py-3.5 justify-center text-sm sm:text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg mt-2">
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -201,6 +274,129 @@ export default function LoginPage() {
                     <span className="flex items-center gap-2">Sign In <FiArrowRight /></span>
                   )}
                 </button>
+
+                <div className="text-center pt-2">
+                  <p className="text-xs text-primary-300">
+                    New to D's Education?{' '}
+                    <button
+                      type="button"
+                      onClick={() => setMode('register')}
+                      className="text-gold-400 hover:text-gold-300 font-bold underline ml-1"
+                    >
+                      Create Free Account
+                    </button>
+                  </p>
+                </div>
+              </form>
+            </>
+          )}
+
+          {/* MODE 1.5: Student Self-Registration */}
+          {mode === 'register' && (
+            <>
+              <div className="mb-4">
+                <span className="badge bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 text-[11px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                  <FiZap className="inline mr-1" /> Free Student Access
+                </span>
+                <h2 className="text-white font-semibold text-xl mt-1.5">Create Free Account</h2>
+                <p className="text-primary-300 text-xs mt-0.5">Start giving mock exams & explore courses</p>
+              </div>
+
+              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+                {/* Name */}
+                <div>
+                  <label className="block text-primary-200 text-xs font-medium mb-1">Full Name (पूरा नाम) *</label>
+                  <div className="relative">
+                    <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary-400" />
+                    <input
+                      type="text" value={regName} onChange={e => setRegName(e.target.value)} required
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-10 pr-3 py-2.5 rounded-xl focus:outline-none focus:border-primary-400 text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-primary-200 text-xs font-medium mb-1">Email Address (ईमेल) *</label>
+                  <div className="relative">
+                    <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary-400" />
+                    <input
+                      type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)} required
+                      placeholder="your.email@gmail.com"
+                      className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-10 pr-3 py-2.5 rounded-xl focus:outline-none focus:border-primary-400 text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Phone & City in 2 Cols */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-primary-200 text-xs font-medium mb-1">WhatsApp / Phone *</label>
+                    <div className="relative">
+                      <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs" />
+                      <input
+                        type="tel" value={regPhone} onChange={e => setRegPhone(e.target.value)} required
+                        placeholder="9876543210"
+                        className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-8 pr-2 py-2.5 rounded-xl focus:outline-none focus:border-primary-400 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-primary-200 text-xs font-medium mb-1">City (शहर)</label>
+                    <div className="relative">
+                      <FiMapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs" />
+                      <input
+                        type="text" value={regCity} onChange={e => setRegCity(e.target.value)}
+                        placeholder="e.g. Indore"
+                        className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-8 pr-2 py-2.5 rounded-xl focus:outline-none focus:border-primary-400 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className="block text-primary-200 text-xs font-medium mb-1">Password (कम से कम 6 अक्षर) *</label>
+                  <div className="relative">
+                    <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary-400" />
+                    <input
+                      type={showRegPass ? 'text' : 'password'} value={regPassword} onChange={e => setRegPassword(e.target.value)} required minLength={6}
+                      placeholder="Create your password"
+                      className="w-full bg-white/10 border border-white/20 text-white placeholder-white/40 pl-10 pr-10 py-2.5 rounded-xl focus:outline-none focus:border-primary-400 text-sm"
+                    />
+                    <button type="button" onClick={() => setShowRegPass(!showRegPass)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-primary-400 hover:text-white transition-colors">
+                      {showRegPass ? <FiEyeOff size={15} /> : <FiEye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading}
+                  className="w-full btn-gold py-3.5 justify-center text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg mt-3">
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Creating Account...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">Create Free Account <FiArrowRight /></span>
+                  )}
+                </button>
+
+                <div className="text-center pt-1">
+                  <p className="text-xs text-primary-300">
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => setMode('login')}
+                      className="text-gold-400 hover:text-gold-300 font-bold underline ml-1"
+                    >
+                      Sign In here
+                    </button>
+                  </p>
+                </div>
               </form>
             </>
           )}

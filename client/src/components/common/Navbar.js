@@ -75,17 +75,18 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-1">
           {navLinks.map(link => (
             <Link key={link.path} to={link.path}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${location.pathname === link.path
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 ${
+                location.pathname === link.path
                   ? 'bg-primary-600 text-white'
                   : 'text-slate-700 hover:bg-primary-50 hover:text-primary-700'
-                }`}>
+              }`}>
               {link.label}
             </Link>
           ))}
         </div>
 
         {/* CTA */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2.5">
           {user ? (
             <Link to={isAdmin ? '/admin/dashboard' : '/student/dashboard'}
               className="btn-primary text-sm py-2 px-5">
@@ -93,10 +94,12 @@ export default function Navbar() {
             </Link>
           ) : (
             <>
-              <Link to="/login" className="flex items-center gap-1.5 font-medium text-sm px-4 py-2 rounded-lg transition-all text-slate-700 hover:text-primary-700">
+              <Link to="/login" className="flex items-center gap-1.5 font-medium text-sm px-3.5 py-2 rounded-lg transition-all text-slate-700 hover:text-primary-700">
                 <FiLogIn /> Login
               </Link>
-              <Link to="/batches" className="btn-gold text-sm py-2 px-5">Join Now</Link>
+              <Link to="/login?mode=register" className="btn-gold text-sm py-2 px-4 shadow-sm">
+                Create Account
+              </Link>
             </>
           )}
         </div>
@@ -124,7 +127,7 @@ export default function Navbar() {
             ) : (
               <>
                 <Link to="/login" onClick={() => setOpen(false)} className="btn-secondary justify-center">Login</Link>
-                <Link to="/batches" onClick={() => setOpen(false)} className="btn-gold justify-center">Join Now</Link>
+                <Link to="/login?mode=register" onClick={() => setOpen(false)} className="btn-gold justify-center">Create Free Account</Link>
               </>
             )}
           </div>

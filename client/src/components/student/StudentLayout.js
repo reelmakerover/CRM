@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
-import { FiHome, FiClipboard, FiBarChart2, FiUser, FiLogOut, FiMenu, FiX, FiBook, FiVideo, FiGift } from 'react-icons/fi';
+import { FiHome, FiClipboard, FiBarChart2, FiUser, FiLogOut, FiMenu, FiX, FiBook, FiVideo, FiGift, FiLayers, FiZap } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const NAV = [
   { icon: <FiHome />, label: 'Dashboard', path: '/student/dashboard' },
-  { icon: <FiVideo />, label: 'Video Lectures', path: '/student/lectures' },
-  { icon: <FiClipboard />, label: 'My Exams', path: '/student/exams' },
-  { icon: <FiGift />, label: 'Exam Kits', path: '/student/exam-kits' },
+  { icon: <FiClipboard />, label: 'Start Test', path: '/student/exams', badge: 'Free' },
+  { icon: <FiLayers />, label: 'Enroll in Course', path: '/student/courses', badge: 'Join' },
   { icon: <FiBarChart2 />, label: 'My Results', path: '/student/results' },
+  { icon: <FiVideo />, label: 'Video Lectures', path: '/student/lectures' },
+  { icon: <FiGift />, label: 'Exam Kits', path: '/student/exam-kits' },
   { icon: <FiUser />, label: 'Profile', path: '/student/profile' },
 ];
 
@@ -39,8 +40,21 @@ export default function StudentLayout() {
           <nav className="hidden md:flex items-center gap-1">
             {NAV.map(item => (
               <NavLink key={item.path} to={item.path}
-                className={({ isActive }) => `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive ? 'bg-primary-600 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-primary-700'}`}>
+                className={({ isActive }) => `flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all relative ${
+                  isActive 
+                    ? 'bg-primary-600 text-white' 
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-primary-700'
+                }`}>
                 {item.icon} {item.label}
+                {item.badge && (
+                  <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full uppercase ${
+                    item.badge === 'Free' 
+                      ? 'bg-emerald-500 text-white' 
+                      : 'bg-amber-400 text-slate-950'
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
               </NavLink>
             ))}
           </nav>

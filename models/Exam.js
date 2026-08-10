@@ -60,6 +60,10 @@ const Exam = sequelize.define('Exam', {
     type: DataTypes.FLOAT,
     defaultValue: 0.25,
   },
+  isPublic: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 }, {
   timestamps: true,
 });

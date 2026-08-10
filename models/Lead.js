@@ -18,6 +18,16 @@ const Lead = sequelize.define('Lead', {
   email: {
     type: DataTypes.STRING,
   },
+  city: {
+    type: DataTypes.STRING,
+  },
+  score: {
+    type: DataTypes.STRING,
+  },
+  source: {
+    type: DataTypes.STRING,
+    defaultValue: 'Website',
+  },
   courseName: {
     type: DataTypes.STRING,
     defaultValue: '12th Commerce',

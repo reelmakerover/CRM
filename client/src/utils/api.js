@@ -25,9 +25,13 @@ api.interceptors.response.use(
 
 export const getImgSrc = (url) => {
   if (!url || typeof url !== 'string') return '';
+  const dataIndex = url.indexOf('data:image/');
+  if (dataIndex !== -1) {
+    return url.substring(dataIndex);
+  }
   if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) return url;
   if (typeof window !== 'undefined' && window.location.port === '3000') {
-    return `${window.location.protocol}//${window.location.hostname}:5000${url}`;
+    return `${window.location.protocol}//${window.location.hostname}:5000${url.startsWith('/') ? url : '/' + url}`;
   }
   return url.startsWith('/') ? url : `/${url}`;
 };

@@ -53,6 +53,7 @@ import StudentResults from './pages/student/StudentResults';
 import StudentProfile from './pages/student/StudentProfile';
 import StudentLectures from './pages/student/StudentLectures';
 import StudentExamKits from './pages/student/StudentExamKits';
+import StudentCourses from './pages/student/StudentCourses';
 
 const ProtectedRoute = ({ children, adminOnly = false, superadminOnly = false, superproadminOnly = false }) => {
   const { user, loading } = useAuth();
@@ -95,6 +96,8 @@ export default function App() {
           <Route path="/blogs" element={<BlogsPage />} />
           <Route path="/blog/:slug" element={<BlogDetailPage />} />
           <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><LoginPage /></PublicRoute>} />
+          <Route path="/signup" element={<PublicRoute><LoginPage /></PublicRoute>} />
 
           {/* Admin */}
           <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
@@ -140,6 +143,7 @@ export default function App() {
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="exams" element={<StudentExams />} />
+            <Route path="courses" element={<StudentCourses />} />
             <Route path="results" element={<StudentResults />} />
             <Route path="profile" element={<StudentProfile />} />
             <Route path="lectures" element={<StudentLectures />} />

@@ -3,11 +3,121 @@ const { Sequelize } = require('sequelize');
 const { sequelize } = require('../config/db');
 const User = require('../models/User');
 const Student = require('../models/Student');
+const Course = require('../models/Course');
+const Lead = require('../models/Lead');
 const { sendLoginOtp, sendForgotPasswordOtp } = require('../utils/mailer');
 
 const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '365d' });
 
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+// Student Self-Registration
+exports.register = async (req, res) => {
+  try {
+    const { name, email, phone, password, courseId, city } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email, and password are required' });
+    }
+
+    const cleanEmail = email.toString().trim().toLowerCase();
+    const cleanPhone = phone ? phone.toString().trim() : '';
+
+    // Check if User already exists
+    const existingUser = await User.findOne({ where: { email: cleanEmail } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'An account with this email already exists. Please login.' });
+    }
+
+    // Check if Student profile exists
+    let student = await Student.findOne({ where: { email: cleanEmail } });
+    if (!student && cleanPhone) {
+      student = await Student.findOne({ where: { phone: cleanPhone } });
+    }
+
+    // 1. Create User
+    const user = await User.create({
+      name: name.trim(),
+      email: cleanEmail,
+      password: password.trim(),
+      role: 'student',
+      visiblePassword: password.trim(),
+      phone: cleanPhone || null
+    });
+
+    if (!student) {
+      // Generate unique enrollment number: DS-YYYY-RANDOM
+      const year = new Date().getFullYear();
+      const randomDigits = Math.floor(1000 + Math.random() * 9000);
+      const enrollmentNo = `DS-${year}-${randomDigits}`;
+
+      // Resolve Course (Optional)
+      let courseRecord = null;
+      if (courseId) {
+        courseRecord = await Course.findByPk(courseId);
+      }
+
+      // Create Student profile
+      student = await Student.create({
+        name: name.trim(),
+        email: cleanEmail,
+        phone: cleanPhone || 'Not Provided',
+        enrollmentNo,
+        courseId: courseRecord ? courseRecord.id : null,
+        address: city ? city.trim() : '',
+        isActive: true,
+        joinDate: new Date(),
+        fees: {
+          totalFees: 0,
+          paidAmount: 0,
+          pendingAmount: 0,
+          installments: []
+        }
+      });
+
+      // Also register as a Lead for admin telecallers/counselors
+      try {
+        await Lead.create({
+          name: name.trim(),
+          email: cleanEmail,
+          phone: cleanPhone || 'Not Provided',
+          courseName: courseRecord ? courseRecord.name : 'Commerce',
+          city: city ? city.trim() : '',
+          status: 'New Lead',
+          source: 'Self Registered Free Account',
+          notes: `Free Account Created on Portal. City: ${city || 'Not Specified'}. Enrollment ID: ${enrollmentNo}`,
+          callerName: 'Portal Auto-Register',
+          callCount: 0,
+          statusUpdatedAt: new Date()
+        });
+      } catch (leadErr) {
+        console.log('Lead creation note:', leadErr.message);
+      }
+    }
+
+    let studentWithAssociations = null;
+    try {
+      studentWithAssociations = await Student.findOne({
+        where: { id: student.id },
+        include: ['course', 'batch']
+      });
+    } catch (e) {
+      studentWithAssociations = student;
+    }
+
+    res.status(201).json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user.id),
+      student: studentWithAssociations || student
+    });
+  } catch (err) {
+    console.error('Error during student registration:', err);
+    res.status(500).json({ message: err.message || 'Registration failed' });
+  }
+};
 
 // Login handler
 exports.login = async (req, res) => {
