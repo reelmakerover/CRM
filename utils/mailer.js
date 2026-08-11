@@ -386,3 +386,59 @@ exports.sendForgotPasswordOtp = async ({ email, otp, name }) => {
     console.error('Failed to send forgot password OTP email via SMTP:', err.message);
   }
 };
+
+exports.sendAbsentEmailAlert = async ({ student, batch, date, remarks }) => {
+  const targetEmail = student.parentEmail || student.email;
+  if (!targetEmail) return;
+
+  try {
+    const transporter = await getTransporter();
+    const smtpSettings = await Settings.findOne({ where: { key: 'smtp' } });
+    const from = smtpSettings?.value?.email || process.env.SMTP_EMAIL || 'attendance@dseducation.in';
+    const studentName = student.name || 'Student';
+    const parentName = student.parentName || 'Parent';
+    const batchName = batch.name || 'Batch';
+    const rollNo = student.enrollmentNo || `STU-${student.id}`;
+
+    const html = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 550px; margin: 0 auto; background: #f8fafc; padding: 24px; border-radius: 16px;">
+        <div style="background: linear-gradient(135deg, #e11d48, #f43f5e); padding: 24px; border-radius: 12px 12px 0 0; text-align: center; color: white;">
+          <h1 style="margin: 0; font-size: 22px; font-weight: bold;">D's Education</h1>
+          <p style="margin: 4px 0 0 0; color: #ffe4e6; font-size: 13px;">Daily Attendance Alert: Student Absent</p>
+        </div>
+        <div style="background: white; padding: 28px; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none;">
+          <p style="color: #334155; font-size: 15px; margin-top: 0;">Respected <strong>${parentName}</strong>,</p>
+          <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+            This is to inform you that your ward <strong>${studentName}</strong> (Enrollment Roll: <strong>${rollNo}</strong>) was marked <span style="color: #e11d48; font-weight: bold;">ABSENT</span> in today's class on <strong>${date}</strong>.
+          </p>
+
+          <div style="background: #fff1f2; border-left: 4px solid #e11d48; padding: 16px; border-radius: 8px; margin: 20px 0;">
+            <div style="font-size: 13px; color: #9f1239; font-weight: bold;">Batch Details:</div>
+            <div style="font-size: 14px; color: #1e293b; font-weight: 600; margin-top: 4px;">${batchName}</div>
+            ${remarks ? `<div style="font-size: 12px; color: #64748b; margin-top: 6px;">Teacher Remarks: <em>${remarks}</em></div>` : ''}
+          </div>
+
+          <p style="color: #64748b; font-size: 13px; line-height: 1.5;">
+            Regular attendance is essential for consistent academic growth and top exam results. If this absence was planned or due to illness, kindly update the institute office.
+          </p>
+
+          <div style="border-top: 1px solid #f1f5f9; margin-top: 24px; padding-top: 16px; text-align: center; color: #94a3b8; font-size: 12px;">
+            D's Education | Commerce Coaching by Vikram Rathore Sir<br>
+            Helpline: +91 98100 12345 | support@dseducation.com
+          </div>
+        </div>
+      </div>
+    `;
+
+    await transporter.sendMail({
+      from: `"D's Education Attendance" <${from}>`,
+      to: targetEmail,
+      subject: `⚠️ Attendance Notice: ${studentName} was Absent on ${date}`,
+      html,
+    });
+    console.log(`✉️ Absent alert email sent to ${targetEmail}`);
+  } catch (err) {
+    console.error('Failed to send absent alert email:', err.message);
+  }
+};
+

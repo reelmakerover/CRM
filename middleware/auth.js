@@ -35,4 +35,14 @@ const superproadminOnly = (req, res, next) => {
   res.status(403).json({ message: 'Super Pro Admin access required' });
 };
 
-module.exports = { protect, adminOnly, superadminOnly, superproadminOnly };
+const teacherOrAdmin = (req, res, next) => {
+  if (req.user && ['teacher', 'admin', 'superadmin', 'superproadmin'].includes(req.user.role)) return next();
+  res.status(403).json({ message: 'Teacher or Admin access required' });
+};
+
+const teacherOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'teacher') return next();
+  res.status(403).json({ message: 'Teacher access required' });
+};
+
+module.exports = { protect, adminOnly, superadminOnly, superproadminOnly, teacherOrAdmin, teacherOnly };

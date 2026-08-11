@@ -46,6 +46,10 @@ const Question = sequelize.define('Question', {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  chapter: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
 }, {
   timestamps: true,
 });

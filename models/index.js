@@ -13,6 +13,7 @@ const Lead = require('./Lead');
 const ExamKit = require('./ExamKit');
 const KitOrder = require('./KitOrder');
 const Lecture = require('./Lecture');
+const Attendance = require('./Attendance');
 
 // --- Associations ---
 
@@ -82,6 +83,19 @@ Lecture.belongsTo(Course, { foreignKey: 'courseId', as: 'course' });
 Subject.hasMany(Lecture, { foreignKey: 'subjectId', as: 'lectures' });
 Lecture.belongsTo(Subject, { foreignKey: 'subjectId', as: 'subject' });
 
+// Attendance associations
+Student.hasMany(Attendance, { foreignKey: 'studentId', as: 'attendances' });
+Attendance.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });
+
+Batch.hasMany(Attendance, { foreignKey: 'batchId', as: 'attendances' });
+Attendance.belongsTo(Batch, { foreignKey: 'batchId', as: 'batch' });
+
+Course.hasMany(Attendance, { foreignKey: 'courseId', as: 'attendances' });
+Attendance.belongsTo(Course, { foreignKey: 'courseId', as: 'course' });
+
+User.hasMany(Attendance, { foreignKey: 'markedById', as: 'markedAttendances' });
+Attendance.belongsTo(User, { foreignKey: 'markedById', as: 'markedBy' });
+
 module.exports = {
   Course,
   Subject,
@@ -97,5 +111,6 @@ module.exports = {
   Lead,
   ExamKit,
   KitOrder,
-  Lecture
+  Lecture,
+  Attendance
 };

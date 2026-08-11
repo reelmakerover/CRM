@@ -22,7 +22,7 @@ const User = sequelize.define('User', {
     allowNull: false,
   },
   role: {
-    type: DataTypes.ENUM('superproadmin', 'superadmin', 'admin', 'student'),
+    type: DataTypes.STRING,
     defaultValue: 'student',
   },
   visiblePassword: {
@@ -44,6 +44,27 @@ const User = sequelize.define('User', {
   },
   photo: {
     type: DataTypes.TEXT('long'),
+  },
+  // Teacher Specific Assignment Fields
+  assignedBatches: {
+    type: DataTypes.JSON,
+    defaultValue: [],
+  },
+  assignedSubjects: {
+    type: DataTypes.JSON,
+    defaultValue: [],
+  },
+  assignedCourses: {
+    type: DataTypes.JSON,
+    defaultValue: [],
+  },
+  specialization: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  experience: {
+    type: DataTypes.STRING,
+    allowNull: true,
   },
   otpCode: {
     type: DataTypes.STRING,

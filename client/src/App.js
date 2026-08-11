@@ -31,6 +31,17 @@ import AdminBlogs from './pages/admin/AdminBlogs';
 import AdminLeads from './pages/admin/AdminLeads';
 import AdminExamKits from './pages/admin/AdminExamKits';
 import AdminLectures from './pages/admin/AdminLectures';
+import ManageTeachers from './pages/admin/ManageTeachers';
+import AdminRunningBatches from './pages/admin/AdminRunningBatches';
+
+// Teacher Portal Pages
+import TeacherLayout from './components/teacher/TeacherLayout';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherBatches from './pages/teacher/TeacherBatches';
+import TeacherAttendance from './pages/teacher/TeacherAttendance';
+import TeacherExams from './pages/teacher/TeacherExams';
+import TeacherQuestions from './pages/teacher/TeacherQuestions';
+import TeacherResults from './pages/teacher/TeacherResults';
 
 // Super Admin Pages
 import SuperAdminLayout from './components/superadmin/SuperAdminLayout';
@@ -55,7 +66,14 @@ import StudentLectures from './pages/student/StudentLectures';
 import StudentExamKits from './pages/student/StudentExamKits';
 import StudentCourses from './pages/student/StudentCourses';
 
-const ProtectedRoute = ({ children, adminOnly = false, superadminOnly = false, superproadminOnly = false }) => {
+const ProtectedRoute = ({ 
+  children, 
+  adminOnly = false, 
+  superadminOnly = false, 
+  superproadminOnly = false,
+  teacherAllowed = false,
+  teacherOnly = false
+}) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full"/></div>;
   if (!user) return <Navigate to="/login" replace />;
@@ -63,6 +81,9 @@ const ProtectedRoute = ({ children, adminOnly = false, superadminOnly = false, s
   if (superproadminOnly && user.role !== 'superproadmin') return <Navigate to="/" replace />;
   if (superadminOnly && !['superadmin', 'superproadmin'].includes(user.role)) return <Navigate to="/" replace />;
   if (adminOnly && !['admin', 'superadmin', 'superproadmin'].includes(user.role)) return <Navigate to="/student/dashboard" replace />;
+  
+  if (teacherOnly && user.role !== 'teacher') return <Navigate to="/" replace />;
+  if (teacherAllowed && !['teacher', 'admin', 'superadmin', 'superproadmin'].includes(user.role)) return <Navigate to="/student/dashboard" replace />;
   
   return children;
 };
@@ -73,6 +94,7 @@ const PublicRoute = ({ children }) => {
     if (user.role === 'superproadmin') return <Navigate to="/superproadmin/dashboard" replace />;
     if (user.role === 'superadmin') return <Navigate to="/superadmin/dashboard" replace />;
     if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    if (user.role === 'teacher') return <Navigate to="/teacher/dashboard" replace />;
     return <Navigate to="/student/dashboard" replace />;
   }
   return children;
@@ -99,10 +121,23 @@ export default function App() {
           <Route path="/register" element={<PublicRoute><LoginPage /></PublicRoute>} />
           <Route path="/signup" element={<PublicRoute><LoginPage /></PublicRoute>} />
 
+          {/* Teacher Portal */}
+          <Route path="/teacher" element={<ProtectedRoute teacherAllowed><TeacherLayout /></ProtectedRoute>}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="batches" element={<TeacherBatches />} />
+            <Route path="attendance" element={<TeacherAttendance />} />
+            <Route path="exams" element={<TeacherExams />} />
+            <Route path="questions" element={<TeacherQuestions />} />
+            <Route path="results" element={<TeacherResults />} />
+          </Route>
+
           {/* Admin */}
           <Route path="/admin" element={<ProtectedRoute adminOnly><AdminLayout /></ProtectedRoute>}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="teachers" element={<ManageTeachers />} />
+            <Route path="running-batches" element={<AdminRunningBatches />} />
             <Route path="exam-kits" element={<AdminExamKits />} />
             <Route path="leads" element={<AdminLeads />} />
             <Route path="students" element={<AdminStudents />} />

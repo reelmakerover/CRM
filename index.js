@@ -30,6 +30,8 @@ app.use('/api/superproadmin', require('./routes/superproadmin'));
 app.use('/api/leads', require('./routes/leads'));
 app.use('/api/exam-kits', require('./routes/examKits'));
 app.use('/api/lectures', require('./routes/lectures'));
+app.use('/api/attendance', require('./routes/attendance'));
+app.use('/api/teachers', require('./routes/teachers'));
 
 
 // Health check
@@ -78,6 +80,21 @@ connectDB().then(async () => {
     }
     if (!tableInfo.visiblePassword) {
       await queryInterface.addColumn('Users', 'visiblePassword', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+    }
+    if (!tableInfo.assignedBatches) {
+      await queryInterface.addColumn('Users', 'assignedBatches', { type: require('sequelize').DataTypes.JSON, defaultValue: [] });
+    }
+    if (!tableInfo.assignedSubjects) {
+      await queryInterface.addColumn('Users', 'assignedSubjects', { type: require('sequelize').DataTypes.JSON, defaultValue: [] });
+    }
+    if (!tableInfo.assignedCourses) {
+      await queryInterface.addColumn('Users', 'assignedCourses', { type: require('sequelize').DataTypes.JSON, defaultValue: [] });
+    }
+    if (!tableInfo.specialization) {
+      await queryInterface.addColumn('Users', 'specialization', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+    }
+    if (!tableInfo.experience) {
+      await queryInterface.addColumn('Users', 'experience', { type: require('sequelize').DataTypes.STRING, allowNull: true });
     }
     console.log('Database synced & User columns verified');
 
@@ -128,9 +145,23 @@ connectDB().then(async () => {
       if (!examTableInfo.isPublic) {
         await queryInterface.addColumn('Exams', 'isPublic', { type: require('sequelize').DataTypes.BOOLEAN, defaultValue: false });
       }
+      if (!examTableInfo.chapter) {
+        await queryInterface.addColumn('Exams', 'chapter', { type: require('sequelize').DataTypes.STRING, defaultValue: 'General' });
+      }
       console.log('Exams columns verified');
     } catch (examColErr) {
       console.log('Exams table column check skipped');
+    }
+
+    // Ensure columns exist in Questions table
+    try {
+      const qTableInfo = await queryInterface.describeTable('Questions');
+      if (!qTableInfo.chapter) {
+        await queryInterface.addColumn('Questions', 'chapter', { type: require('sequelize').DataTypes.STRING, allowNull: true });
+      }
+      console.log('Questions columns verified');
+    } catch (qColErr) {
+      console.log('Questions table column check skipped');
     }
 
     // Ensure columns exist in Leads table

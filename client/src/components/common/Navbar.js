@@ -26,6 +26,15 @@ export default function Navbar() {
   const { user, isAdmin } = useAuth();
   const location = useLocation();
 
+  const getDashboardPath = () => {
+    if (!user) return '/login';
+    if (user.role === 'superproadmin') return '/superproadmin/dashboard';
+    if (user.role === 'superadmin') return '/superadmin/dashboard';
+    if (user.role === 'admin') return '/admin/dashboard';
+    if (user.role === 'teacher') return '/teacher/dashboard';
+    return '/student/dashboard';
+  };
+
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handler);
@@ -40,32 +49,25 @@ export default function Navbar() {
     }).catch(() => {});
   }, []);
 
-  const isHome = location.pathname === '/';
-  const logoUrl = siteConfig.site_logo 
-    ? (siteConfig.site_logo.startsWith('http') ? siteConfig.site_logo : `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${siteConfig.site_logo}`) 
-    : '';
-
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-white/95 backdrop-blur-md shadow-md py-3">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+    <nav className={`sticky top-0 z-50 transition-all duration-300 ${
+      scrolled ? 'bg-white/95 backdrop-blur-md shadow-md' : 'bg-white shadow-xs'
+    }`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3 group">
-          {logoUrl ? (
-            <img 
-              src={logoUrl} 
-              alt={siteConfig.site_title || "Logo"} 
-              className="h-10 w-auto object-contain max-w-[160px]" 
-            />
+        <Link to="/" className="flex items-center gap-3">
+          {siteConfig.site_logo ? (
+            <img src={siteConfig.site_logo} alt="Logo" className="w-9 h-9 object-contain rounded-lg" />
           ) : (
-            <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-primary-800 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-glow transition-all">
-              <FiBook className="text-white text-xl" />
+            <div className="w-9 h-9 bg-primary-700 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-sm">
+              <FiBook />
             </div>
           )}
           <div>
-            <div className="font-display font-bold text-lg leading-tight text-primary-900">
+            <div className="font-display font-black text-lg text-primary-900 leading-tight">
               {siteConfig.site_title || "D's Education"}
             </div>
-            <div className="text-xs leading-tight text-primary-500">
+            <div className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">
               {siteConfig.site_subtitle || "By Vikram Rathore Sir"}
             </div>
           </div>
@@ -88,7 +90,7 @@ export default function Navbar() {
         {/* CTA */}
         <div className="hidden md:flex items-center gap-2.5">
           {user ? (
-            <Link to={isAdmin ? '/admin/dashboard' : '/student/dashboard'}
+            <Link to={getDashboardPath()}
               className="btn-primary text-sm py-2 px-5">
               Dashboard
             </Link>
@@ -121,7 +123,7 @@ export default function Navbar() {
           ))}
           <div className="mt-3 pt-3 border-t border-slate-100 flex flex-col gap-2">
             {user ? (
-              <Link to={isAdmin ? '/admin/dashboard' : '/student/dashboard'} onClick={() => setOpen(false)} className="btn-primary justify-center">
+              <Link to={getDashboardPath()} onClick={() => setOpen(false)} className="btn-primary justify-center">
                 Dashboard
               </Link>
             ) : (

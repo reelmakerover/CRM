@@ -54,6 +54,7 @@ export default function LoginPage() {
         if (res.role === 'superproadmin') navigate('/superproadmin/dashboard');
         else if (res.role === 'superadmin') navigate('/superadmin/dashboard');
         else if (res.role === 'admin') navigate('/admin/dashboard');
+        else if (res.role === 'teacher') navigate('/teacher/dashboard');
         else navigate('/student/dashboard');
       }
     } catch (err) {
@@ -104,6 +105,7 @@ export default function LoginPage() {
       if (data.role === 'superproadmin') navigate('/superproadmin/dashboard');
       else if (data.role === 'superadmin') navigate('/superadmin/dashboard');
       else if (data.role === 'admin') navigate('/admin/dashboard');
+      else if (data.role === 'teacher') navigate('/teacher/dashboard');
       else navigate('/student/dashboard');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid or expired OTP');

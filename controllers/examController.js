@@ -14,7 +14,13 @@ const shuffleArray = (arr) => arr.sort(() => Math.random() - 0.5);
 
 exports.getAllExams = async (req, res) => {
   try {
+    const where = {};
+    if (req.query.course) where.courseId = req.query.course;
+    if (req.query.subject) where.subjectId = req.query.subject;
+    if (req.query.chapter) where.chapter = req.query.chapter;
+
     const exams = await Exam.findAll({
+      where,
       include: [
         { association: 'course', required: false },
         { association: 'subject', required: false }
@@ -30,9 +36,15 @@ exports.getAllExams = async (req, res) => {
 
 exports.createExam = async (req, res) => {
   try {
-    const { course, subject, ...rest } = req.body;
-    const exam = await Exam.create({ ...rest, courseId: course, subjectId: subject });
-    res.status(201).json(exam);
+    const { course, subject, chapter, ...rest } = req.body;
+    const exam = await Exam.create({ 
+      ...rest, 
+      courseId: course, 
+      subjectId: subject,
+      chapter: (chapter && chapter.trim()) ? chapter.trim() : 'General'
+    });
+    const created = await Exam.findByPk(exam.id, { include: ['course', 'subject'] });
+    res.status(201).json(created);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -40,16 +52,18 @@ exports.createExam = async (req, res) => {
 
 exports.updateExam = async (req, res) => {
   try {
-    const { course, subject, ...rest } = req.body;
+    const { course, subject, chapter, ...rest } = req.body;
     const exam = await Exam.findByPk(req.params.id);
     if (!exam) return res.status(404).json({ message: 'Exam not found' });
     
     await exam.update({ 
       ...rest, 
       courseId: course || exam.courseId, 
-      subjectId: subject || exam.subjectId 
+      subjectId: subject || exam.subjectId,
+      chapter: chapter !== undefined ? ((chapter && chapter.trim()) ? chapter.trim() : 'General') : exam.chapter
     });
-    res.json(exam);
+    const updated = await Exam.findByPk(exam.id, { include: ['course', 'subject'] });
+    res.json(updated);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -279,7 +293,8 @@ exports.getQuestionTemplate = async (req, res) => {
     const buffer = xlsx.write(wb, { bookType: 'xlsx', type: 'buffer' });
     res.setHeader('Content-Disposition', 'attachment; filename="DS_Questions_Template.xlsx"');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    return res.send(buffer);
+    res.setHeader('Content-Length', buffer.length);
+    return res.end(buffer);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

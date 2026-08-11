@@ -1,9 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { FiPlus, FiTrash2, FiX, FiSave, FiUpload, FiDownload, FiFilter, FiEdit2 } from 'react-icons/fi';
+import React, { useEffect, useState, useMemo } from 'react';
+import { FiPlus, FiTrash2, FiX, FiSave, FiUpload, FiDownload, FiFilter, FiEdit2, FiFolder } from 'react-icons/fi';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 
-const EMPTY = { question: '', optionA: '', optionB: '', optionC: '', optionD: '', correctAnswer: 'A', course: '', subject: '', difficulty: 'medium', marks: 1 };
+const EMPTY = { 
+  question: '', 
+  optionA: '', 
+  optionB: '', 
+  optionC: '', 
+  optionD: '', 
+  correctAnswer: 'A', 
+  course: '', 
+  subject: '', 
+  chapter: '', 
+  difficulty: 'medium', 
+  marks: 1, 
+  explanation: '' 
+};
 
 export default function AdminQuestions() {
   const [questions, setQuestions] = useState([]);
@@ -11,6 +24,7 @@ export default function AdminQuestions() {
   const [subjects, setSubjects] = useState([]);
   const [filterCourse, setFilterCourse] = useState('');
   const [filterSubject, setFilterSubject] = useState('');
+  const [filterChapter, setFilterChapter] = useState('');
   const [modal, setModal] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [form, setForm] = useState(EMPTY);
@@ -22,22 +36,37 @@ export default function AdminQuestions() {
     const params = {};
     if (filterCourse) params.course = filterCourse;
     if (filterSubject) params.subject = filterSubject;
-    const [q, c, s] = await Promise.all([api.get('/exams/questions', { params }), api.get('/courses'), api.get('/courses/subjects')]);
-    setQuestions(q.data); setCourses(c.data); setSubjects(s.data);
+    if (filterChapter) params.chapter = filterChapter;
+    try {
+      const [q, c, s] = await Promise.all([api.get('/exams/questions', { params }), api.get('/courses'), api.get('/courses/subjects')]);
+      setQuestions(q.data); setCourses(c.data); setSubjects(s.data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load questions');
+    }
   };
-  useEffect(() => { fetch(); }, [filterCourse, filterSubject]);
+  useEffect(() => { fetch(); }, [filterCourse, filterSubject, filterChapter]);
 
   const filteredSubjects = filterCourse ? subjects.filter(s => String(s.course?.id || s.courseId || s.course) === String(filterCourse)) : subjects;
   const modalSubjects = form.course 
     ? subjects.filter(s => String(s.course?.id || s.courseId || s.course) === String(form.course)) 
     : [];
 
+  const existingChapters = useMemo(() => {
+    const set = new Set();
+    questions.forEach(q => {
+      if (q.chapter && q.chapter.trim()) set.add(q.chapter.trim());
+    });
+    return Array.from(set);
+  }, [questions]);
+
   const openAdd = () => {
     setEditingQuestion(null);
     setForm({
       ...EMPTY,
       course: filterCourse || '',
-      subject: filterSubject || ''
+      subject: filterSubject || '',
+      chapter: filterChapter || ''
     });
     setModal(true);
   };
@@ -53,8 +82,10 @@ export default function AdminQuestions() {
       correctAnswer: q.correctAnswer || 'A',
       course: q.courseId || q.course?.id || '',
       subject: q.subjectId || q.subject?.id || '',
+      chapter: q.chapter || '',
       difficulty: q.difficulty || 'medium',
-      marks: q.marks || 1
+      marks: q.marks || 1,
+      explanation: q.explanation || ''
     });
     setModal(true);
   };
@@ -117,27 +148,24 @@ export default function AdminQuestions() {
   const downloadTemplate = async () => {
     try {
       const res = await api.get('/exams/questions/template', { responseType: 'blob' });
-      const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const blob = new Blob([res.data], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
+      a.style.display = 'none';
       a.href = url;
-      a.download = 'DS_Questions_Template.xlsx';
+      a.setAttribute('download', 'DS_Questions_Template.xlsx');
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-      toast.success('Template downloaded (.xlsx)');
+      setTimeout(() => {
+        if (a.parentNode) a.parentNode.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 3000);
+      toast.success('Excel Template downloaded (.xlsx)');
     } catch (err) {
-      // Fallback CSV template
-      const header = 'Question,Option A,Option B,Option C,Option D,Correct Answer,Course,Subject,Difficulty,Marks,Explanation\n';
-      const sample1 = '"Which concept states assets = liabilities + capital?","Assets","Capital","Liabilities","Equity","A","12th Commerce","Accountancy","medium","1","Basic Accounting Equation"\n';
-      const sample2 = '"Which concept requires revenue recognition when earned?","Matching","Revenue Recognition","Going Concern","Cost","B","CA Foundation","Principles and Practice of Accounting","medium","1","Revenue realization concept"\n';
-      const blob = new Blob([header + sample1 + sample2], { type: 'text/csv;charset=utf-8;' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'DS_Questions_Template.csv';
-      a.click();
-      toast.success('CSV Template downloaded');
+      console.error(err);
+      toast.error('Failed to download Excel template');
     }
   };
 
@@ -204,15 +232,15 @@ export default function AdminQuestions() {
             <FiDownload size={12}/> Get Pre-filled Sample
           </button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-11 gap-1.5">
-          {['Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Correct Answer', 'Course', 'Subject', 'Difficulty', 'Marks', 'Explanation'].map(h => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-12 gap-1.5">
+          {['Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Correct Answer', 'Course', 'Subject', 'Chapter', 'Difficulty', 'Marks', 'Explanation'].map(h => (
             <div key={h} className="bg-white/80 text-blue-900 text-xs px-2 py-1.5 rounded border border-blue-200 font-medium text-center shadow-xs">
               {h}
             </div>
           ))}
         </div>
         <p className="text-blue-700 text-xs mt-2.5 leading-relaxed">
-          ✨ <strong>Smart Import:</strong> Correct Answer can be <code className="bg-blue-100 px-1 py-0.5 rounded">A, B, C, D</code> or <code className="bg-blue-100 px-1 py-0.5 rounded">1, 2, 3, 4</code>. Course & Subject are auto-detected and created if not existing.
+          ✨ <strong>Smart Import:</strong> Correct Answer can be <code className="bg-blue-100 px-1 py-0.5 rounded">A, B, C, D</code> or <code className="bg-blue-100 px-1 py-0.5 rounded">1, 2, 3, 4</code>. Course, Subject & Chapter are auto-assigned.
         </p>
       </div>
 
@@ -227,12 +255,29 @@ export default function AdminQuestions() {
           <option value="">All Subjects</option>
           {filteredSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
+        {existingChapters.length > 0 && (
+          <select value={filterChapter} onChange={e => setFilterChapter(e.target.value)} className="input py-2 w-auto min-w-48">
+            <option value="">All Chapters</option>
+            {existingChapters.map(ch => <option key={ch} value={ch}>{ch}</option>)}
+          </select>
+        )}
       </div>
 
       {/* Questions Table */}
       <div className="card overflow-hidden">
         <table className="data-table">
-          <thead><tr><th>#</th><th>Question</th><th>Options</th><th>Answer</th><th>Course / Subject</th><th>Difficulty</th><th className="text-right">Actions</th></tr></thead>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Question</th>
+              <th>Options</th>
+              <th>Answer</th>
+              <th>Course / Subject</th>
+              <th>Chapter Folder</th>
+              <th>Difficulty</th>
+              <th className="text-right">Actions</th>
+            </tr>
+          </thead>
           <tbody>
             {questions.map((q, i) => (
               <tr key={q.id}>
@@ -241,10 +286,15 @@ export default function AdminQuestions() {
                 <td className="text-xs text-slate-500 max-w-xs">
                   <div>A: {q.optionA}</div><div>B: {q.optionB}</div>
                 </td>
-                <td><span className="badge bg-emerald-100 text-emerald-700">{q.correctAnswer}</span></td>
+                <td><span className="badge bg-emerald-100 text-emerald-700 font-bold">{q.correctAnswer}</span></td>
                 <td>
-                  <div className="text-xs">{q.course?.name || '—'}</div>
+                  <div className="text-xs font-medium text-slate-800">{q.course?.name || '—'}</div>
                   <div className="text-xs text-slate-400">{q.subject?.name || '—'}</div>
+                </td>
+                <td>
+                  <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200 font-medium">
+                    📂 {q.chapter || 'General'}
+                  </span>
                 </td>
                 <td><span className={`badge text-xs ${diffColor[q.difficulty]}`}>{q.difficulty}</span></td>
                 <td className="text-right">
@@ -259,7 +309,7 @@ export default function AdminQuestions() {
                 </td>
               </tr>
             ))}
-            {questions.length === 0 && <tr><td colSpan={7} className="text-center py-10 text-slate-400">No questions found. Add manually or import from Excel.</td></tr>}
+            {questions.length === 0 && <tr><td colSpan={8} className="text-center py-10 text-slate-400">No questions found. Add manually or import from Excel.</td></tr>}
           </tbody>
         </table>
       </div>
@@ -303,6 +353,7 @@ export default function AdminQuestions() {
                   <input type="number" {...inp('marks')} className="input" />
                 </div>
               </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <div>
                   <label className="label font-bold text-slate-800 mb-1">Select Course *</label>
@@ -329,6 +380,40 @@ export default function AdminQuestions() {
                     {modalSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
+
+                <div className="col-span-1 md:col-span-2">
+                  <label className="label font-bold text-slate-800 mb-1 flex items-center gap-1">
+                    <FiFolder className="text-amber-600" /> Chapter / Topic Folder (Optional)
+                  </label>
+                  <input 
+                    {...inp('chapter')} 
+                    className="input bg-white w-full" 
+                    placeholder="e.g. Chapter 1: Fundamentals of Partnership" 
+                  />
+                  {existingChapters.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {existingChapters.map(ch => (
+                        <button
+                          key={ch}
+                          type="button"
+                          onClick={() => setForm(p => ({ ...p, chapter: ch }))}
+                          className={`text-xs px-2 py-0.5 rounded border transition-all ${
+                            form.chapter === ch 
+                              ? 'bg-amber-500 text-white border-amber-600 font-semibold' 
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          {ch}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="label">Explanation (Optional)</label>
+                <textarea {...inp('explanation')} rows={2} className="input resize-none" placeholder="Provide solution explanation..." />
               </div>
             </div>
             <div className="flex justify-end gap-3 p-6 border-t">

@@ -64,6 +64,10 @@ const Exam = sequelize.define('Exam', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  chapter: {
+    type: DataTypes.STRING,
+    defaultValue: 'General',
+  },
 }, {
   timestamps: true,
 });
