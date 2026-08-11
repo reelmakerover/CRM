@@ -6,12 +6,5 @@ PassengerAppType node
 PassengerStartupFile index.js
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
 
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
-  RewriteRule ^(api|uploads|static|public) - [L]
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteRule ^ - [L]
-  RewriteRule ^ index.html [L]
-</IfModule>
+# Direct all requests to Passenger Node.js (Express index.js handles API & React fallback)
+DirectoryIndex index.js
