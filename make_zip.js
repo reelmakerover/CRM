@@ -40,7 +40,7 @@ if (fs.existsSync(clientBuild)) {
 
 const items = [
   'public', 'static', 'config', 'controllers', 'middleware', 'models', 'routes', 'uploads', 'utils',
-  'index.js', 'index.html', 'package.json', '.htaccess', '.env', 'database.sqlite', 'seed.js', 'seed_lectures.js'
+  'index.js', 'index.html', 'package.json', '.htaccess', '.env', 'database.sqlite', 'seed.js', 'seed_lectures.js', 'seed_teacher_portal.js', 'seed_chapter_tests.js'
 ];
 
 items.forEach(item => {
