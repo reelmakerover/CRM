@@ -57,7 +57,7 @@ app.get('*', (req, res, next) => {
 });
 
 // Start HTTP Server immediately for Passenger
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 0;
 app.listen(PORT, () => console.log(`D's Education Server running on port ${PORT}`));
 
 // Connect DB & Sync in Background
