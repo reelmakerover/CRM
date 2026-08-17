@@ -13,13 +13,19 @@ const sqlitePath = process.env.DB_STORAGE || (
   path.join(__dirname, 'database.sqlite')
 );
 
-if (useSqlite) {
-  sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: sqlitePath,
-    logging: false
-  });
-} else if (process.env.DATABASE_URL) {
+try {
+  if (useSqlite) {
+    sequelize = new Sequelize({
+      dialect: 'sqlite',
+      storage: sqlitePath,
+      logging: false
+    });
+  }
+} catch (sqliteInitErr) {
+  console.error('SQLite initialization failed due to environment bindings, using MySQL fallback setup:', sqliteInitErr.message);
+}
+
+if (!sequelize && process.env.DATABASE_URL) {
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'mysql',
     logging: false,
@@ -29,14 +35,9 @@ if (useSqlite) {
         rejectUnauthorized: false
       }
     },
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    }
+    pool: { max: 5, min: 0, acquire: 30000, idle: 10000 }
   });
-} else {
+} else if (!sequelize) {
   sequelize = new Sequelize(
     process.env.DB_NAME || 'ds_education',
     process.env.DB_USER || 'root',
@@ -45,12 +46,7 @@ if (useSqlite) {
       host: process.env.DB_HOST || 'localhost',
       dialect: 'mysql',
       logging: false,
-      pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
-      }
+      pool: { max: 5, min: 0, acquire: 30000, idle: 10000 }
     }
   );
 }
