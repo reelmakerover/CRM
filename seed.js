@@ -322,6 +322,8 @@ async function seed() {
         thumbnailUrl: kit.thumbnailUrl
       });
     }
+  }
+
   // 7. Seed Public Demo Mock Exams and Questions
   const class12Course = await Course.findOne({ where: { name: '12th Commerce' } });
   const caFoundCourse = await Course.findOne({ where: { name: 'CA Foundation' } });

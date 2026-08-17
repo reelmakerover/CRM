@@ -27,4 +27,7 @@ Thumbs.db
 *.zip
 scratch/
 CRM-main/
+database.sqlite
+FINAL_SYNCED_DEPLOY/
+
 
