@@ -1,7 +1,7 @@
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
-PassengerAppRoot "/home6/dseducation/dseducationacademy.in"
+PassengerAppRoot "/home6/dseducation/public_html"
 PassengerBaseURI "/"
-PassengerNodejs "/home6/dseducation/nodevenv/dseducationacademy.in/20/bin/node"
+PassengerNodejs "/home6/dseducation/nodevenv/public_html/20/bin/node"
 PassengerAppType node
 PassengerStartupFile index.js
 # DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
