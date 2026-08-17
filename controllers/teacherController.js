@@ -13,50 +13,54 @@ exports.getAllTeachers = async (req, res) => {
     // Populate assigned batch & course names defensively
     const populated = await Promise.all(
       teachers.map(async (t) => {
-        const json = t.toJSON();
-        
-        // Parse assignedBatches safely
-        let batchIds = [];
-        if (typeof json.assignedBatches === 'string') {
-          try { batchIds = JSON.parse(json.assignedBatches); } catch (e) {}
-        } else if (Array.isArray(json.assignedBatches)) {
-          batchIds = json.assignedBatches;
-        }
-
-        // Parse assignedSubjects safely
-        let subjs = [];
-        if (typeof json.assignedSubjects === 'string') {
-          try { subjs = JSON.parse(json.assignedSubjects); } catch (e) {}
-        } else if (Array.isArray(json.assignedSubjects)) {
-          subjs = json.assignedSubjects;
-        }
-
-        // Parse assignedCourses safely
-        let crses = [];
-        if (typeof json.assignedCourses === 'string') {
-          try { crses = JSON.parse(json.assignedCourses); } catch (e) {}
-        } else if (Array.isArray(json.assignedCourses)) {
-          crses = json.assignedCourses;
-        }
-
-        let batches = [];
-        if (batchIds && batchIds.length > 0) {
-          try {
-            batches = await Batch.findAll({
-              where: { id: { [Op.in]: batchIds.map(Number) } },
-              include: [{ association: 'course', attributes: ['id', 'name'] }]
-            });
-          } catch (bErr) {
-            console.error('Error fetching batch details for teacher:', bErr.message);
+        try {
+          const json = t.toJSON();
+          
+          // Parse assignedBatches safely
+          let batchIds = [];
+          if (typeof json.assignedBatches === 'string') {
+            try { batchIds = JSON.parse(json.assignedBatches); } catch (e) { batchIds = []; }
+          } else if (Array.isArray(json.assignedBatches)) {
+            batchIds = json.assignedBatches;
           }
+
+          // Parse assignedSubjects safely
+          let subjs = [];
+          if (typeof json.assignedSubjects === 'string') {
+            try { subjs = JSON.parse(json.assignedSubjects); } catch (e) { subjs = []; }
+          } else if (Array.isArray(json.assignedSubjects)) {
+            subjs = json.assignedSubjects;
+          }
+
+          // Parse assignedCourses safely
+          let crses = [];
+          if (typeof json.assignedCourses === 'string') {
+            try { crses = JSON.parse(json.assignedCourses); } catch (e) { crses = []; }
+          } else if (Array.isArray(json.assignedCourses)) {
+            crses = json.assignedCourses;
+          }
+
+          let batches = [];
+          if (batchIds && batchIds.length > 0) {
+            try {
+              batches = await Batch.findAll({
+                where: { id: { [Op.in]: batchIds.map(Number) } },
+                include: [{ association: 'course', attributes: ['id', 'name'] }]
+              });
+            } catch (bErr) {
+              batches = [];
+            }
+          }
+
+          json.assignedBatches = batchIds || [];
+          json.assignedSubjects = subjs || [];
+          json.assignedCourses = crses || [];
+          json.batchDetails = batches || [];
+
+          return json;
+        } catch (mErr) {
+          return t.toJSON();
         }
-
-        json.assignedBatches = batchIds || [];
-        json.assignedSubjects = subjs || [];
-        json.assignedCourses = crses || [];
-        json.batchDetails = batches || [];
-
-        return json;
       })
     );
 
