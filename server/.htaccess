@@ -1,3 +1,0 @@
-# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION
-PassengerAppType node
-PassengerStartupFile index.js
