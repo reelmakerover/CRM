@@ -53,21 +53,12 @@ if (!sequelize && process.env.DATABASE_URL) {
 
 const connectDB = async () => {
   try {
-    await sequelize.authenticate();
-    console.log(`Database Connected (${sequelize.getDialect().toUpperCase()})`);
-  } catch (error) {
-    console.error('Unable to connect to primary database, falling back to SQLite:', error.message);
-    try {
-      sequelize = new Sequelize({
-        dialect: 'sqlite',
-        storage: process.env.DB_STORAGE || path.join(__dirname, '../database.sqlite'),
-        logging: false
-      });
+    if (sequelize) {
       await sequelize.authenticate();
-      console.log('Database Connected (SQLITE FALLBACK)');
-    } catch (sqliteErr) {
-      console.error('Database connection fatal error:', sqliteErr);
+      console.log(`Database Connected (${sequelize.getDialect().toUpperCase()})`);
     }
+  } catch (error) {
+    console.error('Database Connection Error:', error.message);
   }
 };
 
