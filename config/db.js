@@ -56,9 +56,37 @@ const connectDB = async () => {
     if (sequelize) {
       await sequelize.authenticate();
       console.log(`Database Connected (${sequelize.getDialect().toUpperCase()})`);
+      return;
     }
   } catch (error) {
-    console.error('Database Connection Error:', error.message);
+    console.error('Primary DB Connection Error:', error.message);
+  }
+
+  // Smart fallback retry for cPanel MySQL user/host variations
+  if (process.env.DB_DIALECT === 'mysql' || !useSqlite) {
+    const dbName = process.env.DB_NAME || 'dseducation_crm';
+    const dbPass = process.env.DB_PASS || 'DS_Education_2026!';
+    const userCandidates = [...new Set([process.env.DB_USER, 'dseducation_crm', 'dseducation_admin'].filter(Boolean))];
+    const hostCandidates = ['127.0.0.1', 'localhost'];
+
+    for (const u of userCandidates) {
+      for (const h of hostCandidates) {
+        try {
+          const altSequelize = new Sequelize(dbName, u, dbPass, {
+            host: h,
+            dialect: 'mysql',
+            logging: false,
+            pool: { max: 5, min: 0, acquire: 30000, idle: 10000 }
+          });
+          await altSequelize.authenticate();
+          console.log(`✅ MySQL Connected successfully with user "${u}" on host "${h}"!`);
+          module.exports.sequelize = altSequelize;
+          return;
+        } catch (retryErr) {
+          // silently continue to next candidate
+        }
+      }
+    }
   }
 };
 
