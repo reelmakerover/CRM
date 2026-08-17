@@ -118,7 +118,6 @@ export default function ManageTeachers() {
         }
         toast.success('Teacher account created successfully!');
       }
-      fetchAll();
       setModal(false);
       setForm(EMPTY_TEACHER);
       setEditingTeacher(null);

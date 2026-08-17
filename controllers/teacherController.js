@@ -5,7 +5,9 @@ const { Op } = require('sequelize');
 exports.getAllTeachers = async (req, res) => {
   try {
     const teachers = await User.findAll({
-      where: { role: 'teacher' },
+      where: {
+        role: { [Op.in]: ['teacher', 'Teacher', 'faculty', 'Faculty'] }
+      },
       attributes: { exclude: ['password'] },
       order: [['createdAt', 'DESC']]
     });
