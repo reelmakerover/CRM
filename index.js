@@ -53,6 +53,7 @@ app.get('*', (req, res, next) => {
   const htmlFile = fs.existsSync(path.join(publicDir, 'index.html'))
     ? path.join(publicDir, 'index.html')
     : (fs.existsSync(path.join(__dirname, 'index.html')) ? path.join(__dirname, 'index.html') : path.join(clientBuildDir, 'index.html'));
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.sendFile(htmlFile);
 });
 
