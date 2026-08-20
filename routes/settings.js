@@ -22,6 +22,9 @@ router.get('/public', async (req, res) => {
     settings.forEach(s => { 
       if (s.key !== 'smtp') { // exclude sensitive smtp credentials
         map[s.key] = s.value; 
+        if (typeof s.value === 'object' && s.value !== null && !Array.isArray(s.value)) {
+          Object.assign(map, s.value);
+        }
       }
     });
     res.json(map);

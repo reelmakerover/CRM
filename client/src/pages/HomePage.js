@@ -186,19 +186,34 @@ export default function HomePage() {
               {/* Main Headline */}
               <div className="space-y-1">
                 <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-[#0b132b] leading-[1.08]">
-                  DREAM COMMERCE.<br />
-                  <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 bg-clip-text text-transparent">
-                    BUILD SUCCESS.
-                  </span>
+                  {settings.hero_title ? (
+                    settings.hero_title.includes('.') ? (
+                      <>
+                        {settings.hero_title.split('.')[0]}.<br />
+                        <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 bg-clip-text text-transparent">
+                          {settings.hero_title.split('.').slice(1).join('.')}
+                        </span>
+                      </>
+                    ) : (
+                      settings.hero_title
+                    )
+                  ) : (
+                    <>
+                      DREAM COMMERCE.<br />
+                      <span className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 bg-clip-text text-transparent">
+                        BUILD SUCCESS.
+                      </span>
+                    </>
+                  )}
                 </h1>
                 <p className="font-serif italic text-2xl sm:text-3xl text-amber-700 font-bold tracking-wide pt-1">
-                  We Guide. You Achieve.
+                  {settings.hero_subtitle || "We Guide. You Achieve."}
                 </p>
               </div>
 
               {/* Sub-text Callout */}
               <p className="text-slate-600 font-semibold text-sm sm:text-base tracking-wide flex items-center gap-2">
-                <span>Expert Guidance</span> | <span>Smart Learning</span> | <span>Guaranteed Results</span>
+                {settings.hero_tagline || "Expert Guidance | Smart Learning | Guaranteed Results"}
               </p>
 
               {/* Hand-drawn style Feature Badges Grid */}
@@ -529,10 +544,10 @@ export default function HomePage() {
             {/* Right Stats Grid */}
             <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
               {[
-                { icon: <FiUsers className="text-amber-400 text-3xl mx-auto" />, count: 5000, suffix: '+', label: 'Happy Students' },
-                { icon: <FiAward className="text-amber-400 text-3xl mx-auto" />, count: 250, suffix: '+', label: 'All India Rankers' },
-                { icon: <FiCheckCircle className="text-amber-400 text-3xl mx-auto" />, count: 15, suffix: '+', label: 'Years of Excellence' },
-                { icon: <FiStar className="text-amber-400 text-3xl mx-auto" />, count: 98, suffix: '%', label: 'Success Rate' },
+                { icon: <FiUsers className="text-amber-400 text-3xl mx-auto" />, count: Number(settings.stat_students) || 5000, suffix: '+', label: 'Happy Students' },
+                { icon: <FiAward className="text-amber-400 text-3xl mx-auto" />, count: Number(settings.stat_selections) || 250, suffix: '+', label: 'All India Rankers' },
+                { icon: <FiCheckCircle className="text-amber-400 text-3xl mx-auto" />, count: Number(settings.stat_experience) || 15, suffix: '+', label: 'Years of Excellence' },
+                { icon: <FiStar className="text-amber-400 text-3xl mx-auto" />, count: Number(settings.stat_success) || 98, suffix: '%', label: 'Success Rate' },
               ].map((stat, idx) => (
                 <div key={idx} className="space-y-1">
                   {stat.icon}
@@ -628,11 +643,11 @@ export default function HomePage() {
               </span>
 
               <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-[#0b132b] leading-tight">
-                India's Smartest Exam Engine
+                {settings.exam_engine_title || "India's Smartest Exam Engine"}
               </h2>
 
               <p className="text-slate-600 text-base leading-relaxed max-w-xl font-medium">
-                Our AI-powered exam system gives every student a unique question paper — preventing cheating and ensuring fair assessment.
+                {settings.exam_engine_desc || "Our AI-powered exam system gives every student a unique question paper — preventing cheating and ensuring fair assessment."}
               </p>
 
               {/* 4 Feature Items */}
@@ -750,11 +765,10 @@ export default function HomePage() {
           
           <div className="space-y-2">
             <h2 className="font-display font-black text-2xl sm:text-4xl text-white tracking-tight uppercase">
-              YOUR FUTURE STARTS WITH THE<br />
-              <span className="text-amber-400">RIGHT DECISION TODAY!</span>
+              {settings.cta_title || "YOUR FUTURE STARTS WITH THE RIGHT DECISION TODAY!"}
             </h2>
             <p className="text-slate-300 text-sm font-semibold">
-              Talk to Our Experts — Get Free Counselling Now!
+              {settings.cta_subtitle || "Talk to Our Experts — Get Free Counselling Now!"}
             </p>
           </div>
 
