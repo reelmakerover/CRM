@@ -359,7 +359,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════ */}
       <section className="bg-[#070e20] text-white py-6 border-y border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
             
             {[
               { icon: <FiFileText className="text-amber-400 text-2xl" />, title: 'FREE STUDY MATERIAL', sub: 'Notes, PDFs, E-books & More', link: '/store' },
@@ -370,7 +370,7 @@ export default function HomePage() {
               <Link 
                 key={idx} 
                 to={item.link} 
-                className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-amber-400/50 hover:bg-slate-900 transition-all group"
+                className="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-amber-400/50 hover:bg-slate-900 transition-all group"
               >
                 <div className="shrink-0">{item.icon}</div>
                 <div className="text-left">
@@ -381,21 +381,6 @@ export default function HomePage() {
                 </div>
               </Link>
             ))}
-
-            {/* Download App Action Card */}
-            <Link 
-              to="/login?mode=register" 
-              className="col-span-2 md:col-span-1 bg-amber-500 hover:bg-amber-400 text-slate-950 p-3 rounded-xl font-extrabold flex items-center justify-between shadow-lg transition-all group"
-            >
-              <div className="flex items-center gap-2.5">
-                <FiSmartphone className="text-2xl" />
-                <div className="text-left">
-                  <div className="text-xs font-black leading-tight">DOWNLOAD OUR APP</div>
-                  <div className="text-[10px] opacity-90 font-medium">Learn Anytime, Anywhere!</div>
-                </div>
-              </div>
-              <span className="text-base group-hover:translate-x-1 transition-transform">»</span>
-            </Link>
 
           </div>
         </div>
