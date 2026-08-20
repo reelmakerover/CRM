@@ -26,10 +26,12 @@ export default function BatchesPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <div className="bg-hero-gradient pt-32 pb-16 text-center">
-        <div className="max-w-3xl mx-auto px-4">
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">Batch Schedule</h1>
-          <p className="text-primary-200 text-lg">Live and upcoming batches — seats are limited, enroll early!</p>
+      <div className="bg-gradient-to-b from-[#070c1b] via-[#0b132b] to-[#131f42] py-16 text-center text-white border-b border-slate-800 relative overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl" />
+        <div className="max-w-3xl mx-auto px-4 relative z-10">
+          <span className="text-amber-400 font-extrabold text-xs uppercase tracking-widest block mb-2">LIVE & UPCOMING SESSIONS</span>
+          <h1 className="font-display text-4xl md:text-5xl font-black text-white mb-3">Batch Schedule & Admissions</h1>
+          <p className="text-slate-300 text-sm sm:text-base font-medium">Concept-clearing batches — seats are limited, enroll early!</p>
         </div>
       </div>
 

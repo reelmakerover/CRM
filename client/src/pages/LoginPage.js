@@ -184,12 +184,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-3">
-            <div className="w-14 h-14 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg">
-              <FiBook className="text-white text-2xl" />
+          <Link to="/" className="inline-flex items-center gap-3 group">
+            <div className="w-14 h-14 bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 rounded-2xl flex items-center justify-center shadow-xl text-white text-3xl group-hover:scale-105 transition-transform">
+              <FiBook />
             </div>
           </Link>
-          <h1 className="font-display text-3xl font-bold text-white mt-4">D's Education</h1>
+          <h1 className="font-display text-3xl font-black text-white mt-3 tracking-tight">D's EDUCATION</h1>
+          <p className="text-amber-400 text-xs font-extrabold uppercase tracking-widest mt-0.5">COMMERCE CLASSES</p>
         </div>
 
         {/* Main Card */}
