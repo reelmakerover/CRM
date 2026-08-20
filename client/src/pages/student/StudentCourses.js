@@ -221,13 +221,19 @@ export default function StudentCourses() {
                 </div>
 
                 <div className="mt-5 space-y-2">
-                  <button
-                    onClick={() => handleEnrollInquiry(c)}
-                    disabled={enquiring}
-                    className="w-full btn-primary py-2.5 justify-center text-sm font-bold shadow-sm"
-                  >
-                    Request Admission & Enroll <FiArrowRight />
-                  </button>
+                  {isStudentCourse ? (
+                    <div className="w-full py-2.5 bg-emerald-100 text-emerald-800 font-extrabold text-sm rounded-xl text-center flex items-center justify-center gap-2 border border-emerald-300 shadow-xs">
+                      <FiCheckCircle className="text-emerald-600 text-lg" /> Currently Enrolled
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleEnrollInquiry(c)}
+                      disabled={enquiring}
+                      className="w-full btn-primary py-2.5 justify-center text-sm font-bold shadow-sm"
+                    >
+                      Request Admission & Enroll <FiArrowRight />
+                    </button>
+                  )}
                   <a
                     href={`https://wa.me/919876543210?text=${encodeURIComponent(`Hi Vikram Sir, I am interested in enrolling for ${c.name}. Please share batch timings and admission form.`)}`}
                     target="_blank"

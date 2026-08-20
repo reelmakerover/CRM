@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import api from '../utils/api';
-import { FiCalendar, FiClock, FiUsers, FiArrowRight, FiMapPin, FiFilter } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
+import { FiCalendar, FiClock, FiUsers, FiArrowRight, FiMapPin, FiFilter, FiCheckCircle } from 'react-icons/fi';
 
 export default function BatchesPage() {
+  const { student } = useAuth();
   const [batches, setBatches] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -101,15 +103,31 @@ export default function BatchesPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                      <div>
-                        <div className="font-bold text-primary-700">₹{batch.fees?.toLocaleString() || '—'}</div>
-                        <div className="text-xs text-slate-400">EMI available</div>
-                      </div>
-                      <Link to="/contact" className="btn-primary text-sm py-2 px-4">
-                        {seatsLeft === 0 ? 'Waitlist' : 'Enroll Now'} <FiArrowRight size={14} />
-                      </Link>
-                    </div>
+                    {(() => {
+                      const isEnrolledInBatch = student && (
+                        student.batchId === batch.id || 
+                        student.courseId === (batch.courseId || batch.course?.id) ||
+                        (student.course?.name && batch.course?.name && student.course.name.toLowerCase().trim() === batch.course.name.toLowerCase().trim())
+                      );
+
+                      return (
+                        <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                          <div>
+                            <div className="font-bold text-primary-700">₹{batch.fees?.toLocaleString() || '—'}</div>
+                            <div className="text-xs text-slate-400">EMI available</div>
+                          </div>
+                          {isEnrolledInBatch ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 font-extrabold text-xs border border-emerald-300">
+                              <FiCheckCircle className="text-emerald-600" /> Already Enrolled
+                            </span>
+                          ) : (
+                            <Link to="/contact" className="btn-primary text-sm py-2 px-4">
+                              {seatsLeft === 0 ? 'Waitlist' : 'Enroll Now'} <FiArrowRight size={14} />
+                            </Link>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               );

@@ -49,12 +49,18 @@ export default function StudentDashboard() {
             >
               <FiClipboard /> Start Your Test
             </Link>
-            <Link 
-              to="/student/courses" 
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all border border-white/20"
-            >
-              <FiLayers /> Enroll in Course
-            </Link>
+            {isEnrolledInBatch ? (
+              <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 text-sm font-bold border border-emerald-400/40">
+                <FiCheckCircle className="text-emerald-400" /> Enrolled: {student?.course?.name || student?.batch?.name || 'Active'}
+              </div>
+            ) : (
+              <Link 
+                to="/student/courses" 
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition-all border border-white/20"
+              >
+                <FiLayers /> View Courses
+              </Link>
+            )}
           </div>
         </div>
       </div>

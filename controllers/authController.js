@@ -151,8 +151,13 @@ exports.login = async (req, res) => {
           ]
         }
       });
-      if (student && student.email) {
-        user = await User.findOne({ where: { email: student.email } });
+      if (student) {
+        if (student.email) {
+          user = await User.findOne({ where: { email: student.email } });
+        }
+        if (!user) {
+          user = await User.findOne({ where: { studentId: student.id } });
+        }
       }
     }
 
@@ -167,13 +172,14 @@ exports.login = async (req, res) => {
     // For Student role direct login
     let studentData = null;
     if (finalRole === 'student') {
+      const studentWhere = user.studentId ? { id: user.studentId } : { email: user.email };
       try {
         studentData = await Student.findOne({ 
-          where: { email: user.email }, 
+          where: studentWhere, 
           include: ['course', 'batch'] 
         });
       } catch (e) {
-        studentData = await Student.findOne({ where: { email: user.email } });
+        studentData = await Student.findOne({ where: studentWhere });
       }
     }
 
@@ -222,8 +228,9 @@ exports.verifyLoginOtp = async (req, res) => {
 
     let studentData = null;
     if (finalRole === 'student') {
+      const studentWhere = user.studentId ? { id: user.studentId } : { email };
       studentData = await Student.findOne({ 
-        where: { email }, 
+        where: studentWhere, 
         include: ['course', 'batch'] 
       });
     }
@@ -358,8 +365,9 @@ exports.getProfile = async (req, res) => {
 
     let studentData = null;
     if (finalRole === 'student') {
+      const studentWhere = user.studentId ? { id: user.studentId } : { email: user.email };
       studentData = await Student.findOne({ 
-        where: { email: user.email }, 
+        where: studentWhere, 
         include: ['course', 'batch'] 
       });
     }
