@@ -98,7 +98,7 @@ export default function Navbar() {
                   to="/login?mode=register"
                   className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-[11px] px-3 py-1 rounded-md transition-all shadow-sm flex items-center gap-1"
                 >
-                  <FiDownload /> Download App
+                  <FiUser /> Create Account
                 </Link>
               </>
             )}
