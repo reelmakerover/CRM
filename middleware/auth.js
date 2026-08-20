@@ -20,28 +20,38 @@ const protect = async (req, res, next) => {
   }
 };
 
+const getNormalizedRole = (user) => {
+  if (!user || !user.role) return '';
+  return user.role.toString().trim().toLowerCase();
+};
+
 const adminOnly = (req, res, next) => {
-  if (req.user && ['admin', 'superadmin', 'superproadmin'].includes(req.user.role)) return next();
+  const r = getNormalizedRole(req.user);
+  if (['admin', 'superadmin', 'superproadmin'].includes(r)) return next();
   res.status(403).json({ message: 'Admin access required' });
 };
 
 const superadminOnly = (req, res, next) => {
-  if (req.user && ['superadmin', 'superproadmin'].includes(req.user.role)) return next();
+  const r = getNormalizedRole(req.user);
+  if (['superadmin', 'superproadmin'].includes(r)) return next();
   res.status(403).json({ message: 'Super Admin access required' });
 };
 
 const superproadminOnly = (req, res, next) => {
-  if (req.user && req.user.role === 'superproadmin') return next();
+  const r = getNormalizedRole(req.user);
+  if (r === 'superproadmin') return next();
   res.status(403).json({ message: 'Super Pro Admin access required' });
 };
 
 const teacherOrAdmin = (req, res, next) => {
-  if (req.user && ['teacher', 'admin', 'superadmin', 'superproadmin'].includes(req.user.role)) return next();
+  const r = getNormalizedRole(req.user);
+  if (['teacher', 'faculty', 'admin', 'superadmin', 'superproadmin'].includes(r)) return next();
   res.status(403).json({ message: 'Teacher or Admin access required' });
 };
 
 const teacherOnly = (req, res, next) => {
-  if (req.user && req.user.role === 'teacher') return next();
+  const r = getNormalizedRole(req.user);
+  if (['teacher', 'faculty'].includes(r)) return next();
   res.status(403).json({ message: 'Teacher access required' });
 };
 

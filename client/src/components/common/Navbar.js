@@ -28,10 +28,11 @@ export default function Navbar() {
 
   const getDashboardPath = () => {
     if (!user) return '/login';
-    if (user.role === 'superproadmin') return '/superproadmin/dashboard';
-    if (user.role === 'superadmin') return '/superadmin/dashboard';
-    if (user.role === 'admin') return '/admin/dashboard';
-    if (user.role === 'teacher') return '/teacher/dashboard';
+    const r = (user.role || '').toString().trim().toLowerCase();
+    if (r === 'superproadmin') return '/superproadmin/dashboard';
+    if (r === 'superadmin') return '/superadmin/dashboard';
+    if (r === 'admin') return '/admin/dashboard';
+    if (['teacher', 'faculty'].includes(r)) return '/teacher/dashboard';
     return '/student/dashboard';
   };
 

@@ -108,9 +108,10 @@ export const AuthProvider = ({ children }) => {
       resendOtp, 
       updateProfile,
       logout, 
-      isAdmin: ['admin', 'superadmin', 'superproadmin'].includes(user?.role),
-      isSuperAdmin: ['superadmin', 'superproadmin'].includes(user?.role),
-      isSuperProAdmin: user?.role === 'superproadmin'
+      isAdmin: ['admin', 'superadmin', 'superproadmin'].includes((user?.role || '').toString().trim().toLowerCase()),
+      isSuperAdmin: ['superadmin', 'superproadmin'].includes((user?.role || '').toString().trim().toLowerCase()),
+      isSuperProAdmin: (user?.role || '').toString().trim().toLowerCase() === 'superproadmin',
+      isTeacher: ['teacher', 'faculty'].includes((user?.role || '').toString().trim().toLowerCase())
     }}>
       {children}
     </AuthContext.Provider>

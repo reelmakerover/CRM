@@ -78,12 +78,18 @@ const ProtectedRoute = ({
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-10 w-10 border-4 border-primary-500 border-t-transparent rounded-full"/></div>;
   if (!user) return <Navigate to="/login" replace />;
   
-  if (superproadminOnly && user.role !== 'superproadmin') return <Navigate to="/" replace />;
-  if (superadminOnly && !['superadmin', 'superproadmin'].includes(user.role)) return <Navigate to="/" replace />;
-  if (adminOnly && !['admin', 'superadmin', 'superproadmin'].includes(user.role)) return <Navigate to="/student/dashboard" replace />;
+  const r = (user.role || '').toString().trim().toLowerCase();
+  const isTeacher = ['teacher', 'faculty'].includes(r);
+  const isAdmin = ['admin', 'superadmin', 'superproadmin'].includes(r);
+  const isSuperAdmin = ['superadmin', 'superproadmin'].includes(r);
+  const isSuperProAdmin = r === 'superproadmin';
+
+  if (superproadminOnly && !isSuperProAdmin) return <Navigate to="/" replace />;
+  if (superadminOnly && !isSuperAdmin) return <Navigate to="/" replace />;
+  if (adminOnly && !isAdmin) return <Navigate to="/student/dashboard" replace />;
   
-  if (teacherOnly && user.role !== 'teacher') return <Navigate to="/" replace />;
-  if (teacherAllowed && !['teacher', 'admin', 'superadmin', 'superproadmin'].includes(user.role)) return <Navigate to="/student/dashboard" replace />;
+  if (teacherOnly && !isTeacher) return <Navigate to="/" replace />;
+  if (teacherAllowed && !(isTeacher || isAdmin)) return <Navigate to="/student/dashboard" replace />;
   
   return children;
 };
@@ -91,10 +97,11 @@ const ProtectedRoute = ({
 const PublicRoute = ({ children }) => {
   const { user } = useAuth();
   if (user) {
-    if (user.role === 'superproadmin') return <Navigate to="/superproadmin/dashboard" replace />;
-    if (user.role === 'superadmin') return <Navigate to="/superadmin/dashboard" replace />;
-    if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
-    if (user.role === 'teacher') return <Navigate to="/teacher/dashboard" replace />;
+    const r = (user.role || '').toString().trim().toLowerCase();
+    if (r === 'superproadmin') return <Navigate to="/superproadmin/dashboard" replace />;
+    if (r === 'superadmin') return <Navigate to="/superadmin/dashboard" replace />;
+    if (r === 'admin') return <Navigate to="/admin/dashboard" replace />;
+    if (['teacher', 'faculty'].includes(r)) return <Navigate to="/teacher/dashboard" replace />;
     return <Navigate to="/student/dashboard" replace />;
   }
   return children;

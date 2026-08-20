@@ -40,7 +40,7 @@ app.get('/api/health', (req, res) => res.json({ status: "D's Education Server Ru
 // Serve static frontend build with universal fallback
 const fs = require('fs');
 const publicDir = path.join(__dirname, 'public');
-const clientBuildDir = path.join(__dirname, '../client/build');
+const clientBuildDir = path.join(__dirname, 'client/build');
 const staticDir = fs.existsSync(publicDir) ? publicDir : (fs.existsSync(clientBuildDir) ? clientBuildDir : __dirname);
 
 app.use('/static', express.static(path.join(__dirname, 'static')));
@@ -56,8 +56,8 @@ app.get('*', (req, res, next) => {
   res.sendFile(htmlFile);
 });
 
-// Start HTTP Server immediately for Passenger
-const PORT = process.env.PORT || 0;
+// Start HTTP Server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`D's Education Server running on port ${PORT}`));
 
 // Connect DB & Sync in Background

@@ -136,6 +136,11 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Try finding User directly by phone number
+    if (!user) {
+      user = await User.findOne({ where: { phone: cleanInput } });
+    }
+
     if (!user) {
       // Check if student identifier was entered (Enrollment No or Phone)
       const student = await Student.findOne({
@@ -155,10 +160,13 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    // Normalize user role string
+    const rawRole = user.role ? user.role.toString().trim().toLowerCase() : 'student';
+    const finalRole = ['teacher', 'faculty'].includes(rawRole) ? 'teacher' : rawRole;
 
     // For Student role direct login
     let studentData = null;
-    if (user.role === 'student') {
+    if (finalRole === 'student') {
       try {
         studentData = await Student.findOne({ 
           where: { email: user.email }, 
@@ -173,7 +181,7 @@ exports.login = async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: finalRole,
       token: generateToken(user.id),
       student: studentData,
     });
@@ -209,8 +217,11 @@ exports.verifyLoginOtp = async (req, res) => {
     user.otpPurpose = null;
     await user.save();
 
+    const rawRole = user.role ? user.role.toString().trim().toLowerCase() : 'student';
+    const finalRole = ['teacher', 'faculty'].includes(rawRole) ? 'teacher' : rawRole;
+
     let studentData = null;
-    if (user.role === 'student') {
+    if (finalRole === 'student') {
       studentData = await Student.findOne({ 
         where: { email }, 
         include: ['course', 'batch'] 
@@ -221,7 +232,7 @@ exports.verifyLoginOtp = async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: finalRole,
       token: generateToken(user.id),
       student: studentData,
     });
@@ -337,14 +348,22 @@ exports.getProfile = async (req, res) => {
       attributes: { exclude: ['password', 'otpCode', 'otpExpires', 'otpPurpose'] }
     });
     
+    if (!user) return res.status(404).json({ message: 'User profile not found' });
+
+    const rawRole = user.role ? user.role.toString().trim().toLowerCase() : 'student';
+    const finalRole = ['teacher', 'faculty'].includes(rawRole) ? 'teacher' : rawRole;
+
+    const userJson = user.toJSON();
+    userJson.role = finalRole;
+
     let studentData = null;
-    if (user && user.role === 'student') {
+    if (finalRole === 'student') {
       studentData = await Student.findOne({ 
         where: { email: user.email }, 
         include: ['course', 'batch'] 
       });
     }
-    res.json({ user, student: studentData });
+    res.json({ user: userJson, student: studentData });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

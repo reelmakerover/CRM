@@ -51,10 +51,11 @@ export default function LoginPage() {
         setMode('2fa');
       } else {
         toast.success(`Welcome back, ${res.name}!`);
-        if (res.role === 'superproadmin') navigate('/superproadmin/dashboard');
-        else if (res.role === 'superadmin') navigate('/superadmin/dashboard');
-        else if (res.role === 'admin') navigate('/admin/dashboard');
-        else if (res.role === 'teacher') navigate('/teacher/dashboard');
+        const r = (res.role || '').toString().trim().toLowerCase();
+        if (r === 'superproadmin') navigate('/superproadmin/dashboard');
+        else if (r === 'superadmin') navigate('/superadmin/dashboard');
+        else if (r === 'admin') navigate('/admin/dashboard');
+        else if (['teacher', 'faculty'].includes(r)) navigate('/teacher/dashboard');
         else navigate('/student/dashboard');
       }
     } catch (err) {
@@ -102,10 +103,11 @@ export default function LoginPage() {
     try {
       const data = await verifyLoginOtp(email, otp);
       toast.success(`2FA Verification successful! Welcome ${data.name}`);
-      if (data.role === 'superproadmin') navigate('/superproadmin/dashboard');
-      else if (data.role === 'superadmin') navigate('/superadmin/dashboard');
-      else if (data.role === 'admin') navigate('/admin/dashboard');
-      else if (data.role === 'teacher') navigate('/teacher/dashboard');
+      const r = (data.role || '').toString().trim().toLowerCase();
+      if (r === 'superproadmin') navigate('/superproadmin/dashboard');
+      else if (r === 'superadmin') navigate('/superadmin/dashboard');
+      else if (r === 'admin') navigate('/admin/dashboard');
+      else if (['teacher', 'faculty'].includes(r)) navigate('/teacher/dashboard');
       else navigate('/student/dashboard');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Invalid or expired OTP');
