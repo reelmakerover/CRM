@@ -22,8 +22,10 @@ export default function BlogDetailPage() {
 
   const getImgUrl = (url) => {
     if (!url) return null;
-    if (url.startsWith('http')) return url;
-    return `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${url}`;
+    if (url.startsWith('http') || url.startsWith('data:') || url.startsWith('blob:')) return url;
+    const clean = url.replace(/\\/g, '/');
+    const path = clean.startsWith('/') ? clean : `/${clean}`;
+    return `${typeof window !== 'undefined' && window.location.port === '3000' ? window.location.protocol + '//' + window.location.hostname + ':5000' : ''}${path}`;
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full" /></div>;

@@ -65,7 +65,34 @@ export default function StudentCourses() {
     );
   }
 
-  const currentCourseName = student?.course?.name || 'Free Mock Test Plan';
+  const isEnrolled = Boolean(student?.batchId || student?.courseId || student?.batch?.name || student?.course?.name);
+
+  if (isEnrolled) {
+    return (
+      <div className="max-w-2xl mx-auto py-12 text-center space-y-6">
+        <div className="card p-8 sm:p-10 border-2 border-emerald-500/30 bg-gradient-to-b from-emerald-50/50 to-white space-y-4">
+          <div className="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto text-3xl font-black shadow-lg">
+            ✓
+          </div>
+          <span className="badge bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+            Active Enrolled Student
+          </span>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-slate-900">
+            You Are Already Enrolled!
+          </h1>
+          <p className="text-slate-600 text-sm max-w-lg mx-auto leading-relaxed">
+            You are currently enrolled in <strong>{student?.course?.name || student?.batch?.name || 'Academic Batch'}</strong>. All your live lectures, tests, study materials, attendance, and fee details are active in your Student Dashboard.
+          </p>
+
+          <div className="pt-4">
+            <Link to="/student/dashboard" className="btn-primary py-3 px-8 text-sm font-bold shadow-md inline-flex items-center gap-2">
+              Go to Student Dashboard ➔
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

@@ -5,16 +5,7 @@ import Footer from '../components/common/Footer';
 import api, { getImgSrc } from '../utils/api';
 import { FiBook, FiArrowRight, FiCheckCircle, FiUsers, FiClock, FiZap } from 'react-icons/fi';
 
-const defaultCourses = [
-  { _id: '1', name: '10th Commerce', code: 'C10', category: 'School', fees: 8000, duration: '1 Year', description: 'Build a strong foundation in commerce subjects — Accounts, Economics, Business Studies & Maths.', features: ['Expert faculty', 'Weekly tests', 'Study material', 'Doubt sessions', 'Parent updates'], icon: '📚', color: 'from-blue-500 to-blue-700' },
-  { _id: '2', name: '11th Commerce', code: 'C11', category: 'School', fees: 12000, duration: '1 Year', description: 'Master the transition to senior commerce with deep dives into Accountancy, Economics & BST.', features: ['Expert faculty', 'Weekly tests', 'Study material', 'Doubt sessions', 'Mock board exams'], icon: '📖', color: 'from-violet-500 to-violet-700' },
-  { _id: '3', name: '12th Commerce', code: 'C12', category: 'School', fees: 15000, duration: '1 Year', description: 'Board exam mastery with intensive test series, revision sheets and one-on-one doubt clearance.', features: ['Board pattern tests', 'Last 10 yrs papers', 'Study material', 'Personal mentoring', 'Parent updates'], icon: '🏆', color: 'from-rose-500 to-rose-700' },
-  { _id: '4', name: 'BCom / MCom', code: 'BCOM', category: 'Commerce', fees: 18000, duration: '1 Year', description: 'Advanced commerce and management concepts with university-aligned curriculum and practice tests.', features: ['University aligned', 'Online test series', 'Study material', 'Personal mentoring', 'Career guidance'], icon: '🎓', color: 'from-emerald-500 to-emerald-700' },
-  { _id: '5', name: 'BBA', code: 'BBA', category: 'Commerce', fees: 16000, duration: '1 Year', description: 'Business Administration fundamentals — Management, Marketing, Finance and Entrepreneurship.', features: ['Industry examples', 'Case studies', 'Study material', 'Group discussions', 'Mock interviews'], icon: '💼', color: 'from-orange-500 to-orange-700' },
-  { _id: '6', name: 'CA Foundation', code: 'CAF', category: 'Professional', fees: 20000, duration: '6 Months', description: 'ICAI-aligned preparation for CA Foundation with subject specialists and rigorous mock tests.', features: ['ICAI pattern', 'Mock tests', 'Study material', 'Personal mentoring', 'Success guarantee'], icon: '⚡', color: 'from-amber-500 to-amber-700' },
-  { _id: '7', name: 'CA Intermediate', code: 'CAI', category: 'Professional', fees: 25000, duration: '1 Year', description: 'Comprehensive CA Intermediate coaching across both groups with past paper analysis.', features: ['Both groups', 'Topic tests', 'Study material', 'Personal mentoring', 'Parent updates'], icon: '📊', color: 'from-cyan-500 to-cyan-700' },
-  { _id: '8', name: 'CMA / CS', code: 'CMACS', category: 'Professional', fees: 22000, duration: '1 Year', description: 'Cost & Management Accounting and Company Secretary foundation with expert guidance.', features: ['Expert faculty', 'Mock exams', 'Study material', 'Personal mentoring', 'Placement support'], icon: '🌟', color: 'from-pink-500 to-pink-700' },
-];
+
 
 export default function CoursesPage() {
   const [courses, setCourses] = useState([]);
@@ -25,25 +16,21 @@ export default function CoursesPage() {
 
   useEffect(() => {
     api.get('/courses').then(r => {
-      if (r.data.length > 0) {
-        setCourses(r.data.map(c => {
-          let feats = [];
-          if (Array.isArray(c.features)) {
-            feats = c.features;
-          } else if (typeof c.features === 'string') {
-            try {
-              feats = JSON.parse(c.features);
-              if (!Array.isArray(feats)) feats = [c.features];
-            } catch (e) {
-              feats = c.features.split(',').map(s => s.trim()).filter(Boolean);
-            }
+      setCourses((r.data || []).map(c => {
+        let feats = [];
+        if (Array.isArray(c.features)) {
+          feats = c.features;
+        } else if (typeof c.features === 'string') {
+          try {
+            feats = JSON.parse(c.features);
+            if (!Array.isArray(feats)) feats = [c.features];
+          } catch (e) {
+            feats = c.features.split(',').map(s => s.trim()).filter(Boolean);
           }
-          return { ...c, features: feats };
-        }));
-      } else {
-        setCourses(defaultCourses);
-      }
-    }).catch(() => setCourses(defaultCourses)).finally(() => setLoading(false));
+        }
+        return { ...c, features: feats };
+      }));
+    }).catch(() => setCourses([])).finally(() => setLoading(false));
   }, []);
 
   const filtered = active === 'All' ? courses : courses.filter(c => c.category === active);

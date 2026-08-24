@@ -4,8 +4,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: { 50:'#eff6ff', 100:'#dbeafe', 200:'#bfdbfe', 300:'#93c5fd', 400:'#60a5fa', 500:'#3b82f6', 600:'#2563eb', 700:'#1d4ed8', 800:'#1e40af', 900:'#1e3a8a' },
-        accent: { 400:'#fb923c', 500:'#f97316', 600:'#ea580c' },
+        primary: { 50:'#f0f4fa', 100:'#d9e2f3', 200:'#bfdbfe', 300:'#93c5fd', 400:'#60a5fa', 500:'#1e50d8', 600:'#163fae', 700:'#0b193c', 800:'#0b193c', 900:'#070c1b' },
+        accent: { 400:'#f97316', 500:'#ea580c', 600:'#d9531e', 700:'#c24513' },
+        navy: { 50:'#f0f4fa', 100:'#d9e2f3', 500:'#162e63', 800:'#0b193c', 900:'#070c1b' },
         gold: { 50:'#fffbeb', 100:'#fef3c7', 200:'#fde68a', 300:'#fcd34d', 400:'#fbbf24', 500:'#f59e0b', 600:'#d97706', 700:'#b45309', 800:'#92400e', 900:'#78350f' },
       },
       fontFamily: {
@@ -28,10 +29,11 @@ module.exports = {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
       },
       backgroundImage: {
-        'hero-gradient': 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1e40af 100%)',
+        'hero-gradient': 'linear-gradient(135deg, #070c1b 0%, #0b193c 60%, #162e63 100%)',
         'card-gradient': 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
         'gold-gradient': 'linear-gradient(135deg, #f59e0b, #d97706)',
-        'blue-gradient': 'linear-gradient(135deg, #2563eb, #1d4ed8)',
+        'blue-gradient': 'linear-gradient(135deg, #0b193c, #162e63)',
+        'orange-gradient': 'linear-gradient(135deg, #d9531e, #ea580c)',
         'shimmer-gradient': 'linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)',
       },
       boxShadow: {

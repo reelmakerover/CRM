@@ -76,12 +76,24 @@ export default function ContactPage() {
             </a>
 
             {/* Hours */}
-            <div className="card p-5">
+            <div className="card p-5 mb-6">
               <h4 className="font-semibold text-slate-900 mb-3">Office Hours</h4>
               <div className="space-y-2 text-sm text-slate-600">
                 <div className="flex justify-between"><span>Monday – Saturday</span><span className="font-semibold text-slate-900">9:00 AM – 8:00 PM</span></div>
                 <div className="flex justify-between"><span>Sunday</span><span className="font-semibold text-slate-900">10:00 AM – 2:00 PM</span></div>
               </div>
+            </div>
+
+            {/* Interactive Map */}
+            <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-md h-64 relative">
+              <iframe
+                title="D's Education Centre Map"
+                src="https://maps.google.com/maps?q=Near%20Goras%20Bhandar%2C%20Moolpura%2C%20Jaipur%2C%20Rajasthan%20302039&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-full border-0"
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </div>
 

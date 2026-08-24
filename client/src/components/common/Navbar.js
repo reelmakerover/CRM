@@ -11,7 +11,6 @@ const navLinks = [
   { label: 'HOME', path: '/' },
   { label: 'COURSES', path: '/courses' },
   { label: 'BATCHES', path: '/batches' },
-  { label: 'TEST SERIES', path: '/store' },
   { label: 'FREE LECTURES', path: '/lectures' },
   { label: 'RESULTS', path: '/results' },
   { label: 'BLOGS', path: '/blogs' },

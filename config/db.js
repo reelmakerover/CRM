@@ -88,6 +88,20 @@ const connectDB = async () => {
       }
     }
   }
+
+  // Ultimate fallback to SQLite if MySQL is unavailable locally
+  try {
+    const sqliteFallback = new Sequelize({
+      dialect: 'sqlite',
+      storage: sqlitePath,
+      logging: false
+    });
+    await sqliteFallback.authenticate();
+    console.log('✅ Fallback to local SQLite database successful!');
+    module.exports.sequelize = sqliteFallback;
+  } catch (sqliteErr) {
+    console.error('❌ Failed to connect to SQLite fallback:', sqliteErr.message);
+  }
 };
 
 module.exports = { sequelize, connectDB };

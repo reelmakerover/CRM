@@ -10,7 +10,6 @@ const NAV = [
   { icon: <FiLayers />, label: 'Enroll in Course', path: '/student/courses', badge: 'Join' },
   { icon: <FiBarChart2 />, label: 'My Results', path: '/student/results' },
   { icon: <FiVideo />, label: 'Video Lectures', path: '/student/lectures' },
-  { icon: <FiGift />, label: 'Exam Kits', path: '/student/exam-kits' },
   { icon: <FiUser />, label: 'Profile', path: '/student/profile' },
 ];
 
@@ -18,6 +17,13 @@ export default function StudentLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, student, logout } = useAuth();
   const navigate = useNavigate();
+
+  const isEnrolled = Boolean(student?.batchId || student?.batch?.name || student?.courseId || student?.course?.name);
+
+  const filteredNav = NAV.filter(item => {
+    if (isEnrolled && item.path === '/student/courses') return false;
+    return true;
+  });
 
   const handleLogout = () => { logout(); toast.success('Logged out'); navigate('/'); };
 
@@ -38,7 +44,7 @@ export default function StudentLayout() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {NAV.map(item => (
+            {filteredNav.map(item => (
               <NavLink key={item.path} to={item.path}
                 className={({ isActive }) => `flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all relative ${
                   isActive 
@@ -81,7 +87,7 @@ export default function StudentLayout() {
         {/* Mobile Nav */}
         {mobileOpen && (
           <div className="md:hidden border-t border-slate-100 px-4 py-3 flex flex-col gap-1">
-            {NAV.map(item => (
+            {filteredNav.map(item => (
               <NavLink key={item.path} to={item.path} onClick={() => setMobileOpen(false)}
                 className={({ isActive }) => `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium ${isActive ? 'bg-primary-600 text-white' : 'text-slate-700 hover:bg-slate-100'}`}>
                 {item.icon} {item.label}

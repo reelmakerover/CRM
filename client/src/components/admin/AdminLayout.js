@@ -11,7 +11,6 @@ import toast from 'react-hot-toast';
 
 const NAV = [
   { icon: <FiHome />, label: 'Dashboard', path: '/admin/dashboard' },
-  { icon: <FiGift />, label: 'Exam Kits & Store', path: '/admin/exam-kits' },
   { icon: <FiPhoneCall />, label: 'Telecaller & Leads', path: '/admin/leads' },
   { icon: <FiUsers />, label: 'Faculty & Teachers', path: '/admin/teachers' },
   { icon: <FiUsers />, label: 'Students', path: '/admin/students' },

@@ -62,7 +62,6 @@ export default function Footer() {
                 { label: 'HOME', path: '/' },
                 { label: 'COURSES', path: '/courses' },
                 { label: 'BATCHES', path: '/batches' },
-                { label: 'TEST SERIES', path: '/store' },
                 { label: 'FREE LECTURES', path: '/lectures' },
                 { label: 'TOP RESULTS', path: '/results' },
                 { label: 'CONTACT US', path: '/contact' },

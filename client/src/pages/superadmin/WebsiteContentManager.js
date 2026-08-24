@@ -8,14 +8,18 @@ export default function WebsiteContentManager() {
     site_title: "D's Education",
     site_subtitle: "By Vikram Rathore Sir",
     site_logo: "",
-    hero_title: "Shape Your Future with India's Best Commerce Coaching",
-    hero_subtitle: "D's Education provides results-driven coaching for 11th, 12th, BCom, BBA, CA, CMA, and CS with a focus on conceptual clarity and success.",
-    contact_email: "info@dseducation.in",
-    contact_phone: "+91 98765 43210",
-    contact_address: "D's Education Centre, Main Market, Jaipur, Rajasthan 302001",
-    stat_students: "5000",
-    stat_selections: "1500",
-    stat_experience: "15",
+    teacher_name: "Prof. Vikram Rathore",
+    teacher_degree: "B.Com | M.Com | UGC NET",
+    teacher_exp: "Teaching CA & CMA Foundation Since 2017",
+    teacher_photo: "",
+    hero_title: "CA & CMA Coaching Classes in Jaipur",
+    hero_subtitle: "Your First Step Towards CA & CMA Success",
+    contact_email: "rathorevikram496@gmail.com",
+    contact_phone: "6350149302",
+    contact_address: "Near Goras Bhandar, Moolpura, Jaipur, Rajasthan - 302039",
+    stat_students: "1000+",
+    stat_selections: "98%",
+    stat_experience: "2017",
     why_us: [],
     testimonials: [],
     fee_plans: [],
@@ -113,11 +117,15 @@ export default function WebsiteContentManager() {
   const handleSaveAll = async () => {
     setSaving(true);
     try {
-      const promises = Object.entries(settings).map(([key, value]) => 
-        api.post('/settings', { key, value })
-      );
+      const promises = Object.entries(settings).map(([key, value]) => {
+        let valToSave = value;
+        if (typeof value === 'object' && value !== null) {
+          valToSave = JSON.stringify(value);
+        }
+        return api.post('/settings', { key, value: valToSave });
+      });
       await Promise.all(promises);
-      toast.success('All website content & banners saved successfully!');
+      toast.success('All website content, faculty photo & banners saved successfully!');
     } catch (err) {
       toast.error('Failed to save settings');
     } finally {
@@ -327,6 +335,69 @@ export default function WebsiteContentManager() {
                   className="hidden" 
                   disabled={uploadingSlot === 'site_logo'}
                   onChange={e => handleAvatarFileUpload('site_logo', e.target.files[0])}
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ═════════════════════════════════════════════════════════
+          FACULTY & HERO PORTRAIT CUTOUT PHOTO SETTINGS
+      ═════════════════════════════════════════════════════════ */}
+      <div className="card p-6 space-y-4 bg-white border border-slate-200 rounded-3xl shadow-sm">
+        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b pb-3">
+          <FiUsers className="text-[#0b193c]" /> Hero Section Faculty Cutout & Profile Details
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Faculty / Director Name</label>
+            <input 
+              type="text" name="teacher_name" 
+              value={settings.teacher_name || ''} 
+              onChange={handleChange}
+              placeholder="e.g. Prof. Vikram Rathore"
+              className="input w-full text-xs" 
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Degree / Qualification</label>
+            <input 
+              type="text" name="teacher_degree" 
+              value={settings.teacher_degree || ''} 
+              onChange={handleChange}
+              placeholder="e.g. B.Com | M.Com | UGC NET"
+              className="input w-full text-xs" 
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Experience Subtitle</label>
+            <input 
+              type="text" name="teacher_exp" 
+              value={settings.teacher_exp || ''} 
+              onChange={handleChange}
+              placeholder="e.g. Teaching CA & CMA Foundation Since 2017"
+              className="input w-full text-xs" 
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Portrait Cutout Image</label>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl border border-slate-200 bg-amber-400 overflow-hidden flex items-center justify-center p-1">
+                {settings.teacher_photo ? (
+                  <img src={getImgSrc(settings.teacher_photo)} alt="Teacher" className="w-full h-full object-contain" />
+                ) : (
+                  <span className="text-[10px] text-slate-900 font-bold">Cutout</span>
+                )}
+              </div>
+              <label className="btn-secondary py-2 px-3 text-xs font-semibold rounded-xl cursor-pointer hover:bg-slate-200 transition-all flex items-center gap-1 shadow-sm">
+                <FiUploadCloud /> {uploadingSlot === 'teacher_photo' ? 'Uploading...' : 'Upload Photo'}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  disabled={uploadingSlot === 'teacher_photo'}
+                  onChange={e => handleAvatarFileUpload('teacher_photo', e.target.files[0])}
                 />
               </label>
             </div>

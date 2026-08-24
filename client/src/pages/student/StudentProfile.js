@@ -244,9 +244,17 @@ export default function StudentProfile() {
             <p className="text-slate-500 text-sm">Academic year payment tracking</p>
           </div>
           <div className="ml-auto">
-            {pendingAmount === 0 ? (
+            {totalFees === 0 ? (
+              <span className="badge bg-slate-100 text-slate-700 flex items-center gap-1 font-semibold">
+                <FiAlertCircle size={13} /> Fee Not Assigned
+              </span>
+            ) : pendingAmount === 0 && paidAmount > 0 ? (
               <span className="badge bg-emerald-100 text-emerald-700 flex items-center gap-1 font-semibold">
                 <FiCheckCircle size={13} /> Fully Paid
+              </span>
+            ) : paidAmount > 0 && pendingAmount > 0 ? (
+              <span className="badge bg-amber-100 text-amber-800 flex items-center gap-1 font-semibold">
+                <FiAlertCircle size={13} /> Partially Paid
               </span>
             ) : (
               <span className="badge bg-rose-100 text-rose-700 flex items-center gap-1 font-semibold">

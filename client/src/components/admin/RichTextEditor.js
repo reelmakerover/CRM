@@ -8,6 +8,7 @@ import {
 
 export default function RichTextEditor({ value, onChange, placeholder = 'Write your article content here...' }) {
   const editorRef = useRef(null);
+  const isTypingRef = useRef(false);
   const [mode, setMode] = useState('visual'); // 'visual' | 'html' | 'preview'
   const [htmlContent, setHtmlContent] = useState(value || '');
   const [linkModal, setLinkModal] = useState(false);
@@ -15,22 +16,39 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Write y
   const [linkText, setLinkText] = useState('');
   const [selectedRange, setSelectedRange] = useState(null);
 
-  // Sync external value changes
+  // Sync external value changes (only when user is NOT actively typing)
   useEffect(() => {
-    if (value !== htmlContent) {
+    if (!isTypingRef.current && value !== htmlContent) {
       setHtmlContent(value || '');
-      if (editorRef.current && mode === 'visual' && editorRef.current.innerHTML !== value) {
-        editorRef.current.innerHTML = value || '';
+      if (editorRef.current && mode === 'visual') {
+        if (editorRef.current.innerHTML !== (value || '')) {
+          editorRef.current.innerHTML = value || '';
+        }
       }
     }
-  }, [value]);
+  }, [value, mode]);
+
+  // Set initial content on mount or mode switch to visual
+  useEffect(() => {
+    if (mode === 'visual' && editorRef.current) {
+      if (editorRef.current.innerHTML !== (htmlContent || '')) {
+        editorRef.current.innerHTML = htmlContent || '';
+      }
+    }
+  }, [mode]);
 
   // Handle visual editor input
   const handleEditorInput = () => {
     if (editorRef.current) {
+      isTypingRef.current = true;
       const html = editorRef.current.innerHTML;
       setHtmlContent(html);
       onChange(html);
+
+      clearTimeout(window._typingTimer);
+      window._typingTimer = setTimeout(() => {
+        isTypingRef.current = false;
+      }, 800);
     }
   };
 
@@ -304,11 +322,12 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Write y
             ref={editorRef}
             contentEditable
             onInput={handleEditorInput}
-            onBlur={handleEditorInput}
-            dangerouslySetInnerHTML={{ __html: htmlContent }}
+            onBlur={() => {
+              handleEditorInput();
+              isTypingRef.current = false;
+            }}
             className="min-h-[260px] max-h-[420px] overflow-y-auto p-4 text-slate-800 text-sm leading-relaxed outline-none focus:outline-none prose prose-sm max-w-none prose-slate"
             style={{
-              whiteSpace: 'pre-wrap',
               wordBreak: 'break-word'
             }}
           />

@@ -120,55 +120,7 @@ export default function StudentExams() {
 
   return (
     <div className="space-y-8">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-primary-900 via-primary-800 to-indigo-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-        
-        <div className="relative z-10 space-y-4">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold text-amber-300 border border-white/15">
-            <FiLayers size={14} /> Chapter-Wise Assessment Portal
-          </div>
 
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h1 className="font-display text-3xl font-bold tracking-tight">Chapter-Wise Test Series</h1>
-              <p className="text-primary-200 text-sm mt-1 max-w-xl">
-                Practice chapter by chapter with real exam simulation, instant rank analysis & automated answer explanations.
-              </p>
-            </div>
-
-            {/* Quick Stats Grid */}
-            <div className="flex items-center gap-3">
-              <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-center min-w-[90px]">
-                <div className="text-2xl font-black text-amber-300">{subjectList.length}</div>
-                <div className="text-[11px] text-primary-200 font-medium uppercase tracking-wider">Subjects</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-center min-w-[90px]">
-                <div className="text-2xl font-black text-emerald-300">{totalAvailable}</div>
-                <div className="text-[11px] text-primary-200 font-medium uppercase tracking-wider">Available</div>
-              </div>
-              <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 text-center min-w-[90px]">
-                <div className="text-2xl font-black text-white">{totalCompleted}</div>
-                <div className="text-[11px] text-primary-200 font-medium uppercase tracking-wider">Completed</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Guidelines Alert */}
-      <div className="bg-primary-50/80 border border-primary-200/90 rounded-2xl p-4 sm:p-5 flex gap-4 items-start shadow-xs">
-        <FiAlertCircle className="text-primary-600 flex-shrink-0 mt-0.5" size={22} />
-        <div className="text-xs sm:text-sm text-primary-900 space-y-1">
-          <span className="font-bold text-primary-950 block">Important Test Guidelines:</span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-primary-800">
-            <span>• <strong>Chapter Focused:</strong> Tests cover high-yield questions from that specific chapter.</span>
-            <span>• <strong>Anti-Cheat:</strong> Switching tabs triggers warning; 3 warnings = auto-submit.</span>
-            <span>• <strong>Instant Results:</strong> Detailed score card & ranking generated immediately.</span>
-            <span>• <strong>One Attempt:</strong> Each test can only be submitted once per student.</span>
-          </div>
-        </div>
-      </div>
 
       {/* Subject Folders Selector */}
       <div className="space-y-3">

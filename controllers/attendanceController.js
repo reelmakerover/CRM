@@ -220,14 +220,26 @@ exports.getBatchAttendance = async (req, res) => {
 // Get Single Student Attendance History
 exports.getStudentAttendance = async (req, res) => {
   try {
-    const { studentId } = req.params;
+    let { studentId } = req.params;
 
-    const student = await Student.findByPk(studentId, {
-      include: [
-        { association: 'batch', attributes: ['id', 'name', 'timing'] },
-        { association: 'course', attributes: ['id', 'name'] }
-      ]
-    });
+    let student = null;
+    if (studentId === 'me') {
+      student = await Student.findOne({ 
+        where: { email: req.user.email },
+        include: [
+          { association: 'batch', attributes: ['id', 'name', 'timing'] },
+          { association: 'course', attributes: ['id', 'name'] }
+        ]
+      });
+      if (student) studentId = student.id;
+    } else {
+      student = await Student.findByPk(studentId, {
+        include: [
+          { association: 'batch', attributes: ['id', 'name', 'timing'] },
+          { association: 'course', attributes: ['id', 'name'] }
+        ]
+      });
+    }
 
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });

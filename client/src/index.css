@@ -33,21 +33,21 @@
   }
   .card:hover { @apply shadow-card-hover -translate-y-1; }
   .btn-primary {
-    @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white px-6 py-3 rounded-xl font-semibold 
-           hover:from-primary-700 hover:to-primary-800 transition-all duration-200 shadow-md hover:shadow-glow 
-           active:scale-95 inline-flex items-center gap-2;
+    @apply bg-[#0b193c] hover:bg-[#162e63] text-white px-6 py-3 rounded-xl font-extrabold 
+           transition-all duration-200 shadow-md hover:shadow-lg 
+           active:scale-95 inline-flex items-center gap-2 cursor-pointer;
   }
   .btn-secondary {
-    @apply bg-white text-primary-700 border-2 border-primary-200 px-6 py-3 rounded-xl font-semibold 
-           hover:bg-primary-50 hover:border-primary-400 transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    @apply bg-[#d9531e] hover:bg-[#b84214] text-white px-6 py-3 rounded-xl font-extrabold 
+           transition-all duration-200 shadow-md active:scale-95 inline-flex items-center gap-2 cursor-pointer;
   }
   .btn-gold {
-    @apply bg-gradient-to-r from-gold-500 to-gold-600 text-white px-6 py-3 rounded-xl font-semibold 
-           hover:from-gold-600 hover:to-gold-700 transition-all duration-200 shadow-md active:scale-95 inline-flex items-center gap-2;
+    @apply bg-amber-500 hover:bg-amber-400 text-slate-950 px-6 py-3 rounded-xl font-black 
+           transition-all duration-200 shadow-md active:scale-95 inline-flex items-center gap-2 cursor-pointer uppercase tracking-wider;
   }
   .input {
-    @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-primary-500 
-           focus:ring-2 focus:ring-primary-100 transition-all duration-200 text-slate-800 placeholder-slate-400;
+    @apply w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:outline-none focus:border-amber-500 
+           focus:ring-2 focus:ring-amber-200 transition-all duration-200 text-slate-800 placeholder-slate-400 font-semibold;
   }
   .label { @apply block text-sm font-semibold text-slate-700 mb-1.5; }
   .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold; }

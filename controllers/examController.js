@@ -86,23 +86,57 @@ exports.startExam = async (req, res) => {
       include: ['course', 'subject']
     });
     if (!exam) return res.status(404).json({ message: 'Exam not found' });
-    if (exam.status !== 'active') return res.status(400).json({ message: 'Exam is not active' });
     
-    const student = await Student.findOne({ where: { email: req.user.email } });
-    if (!student) return res.status(404).json({ message: 'Student not found' });
-    
-    const existing = await Result.findOne({ where: { studentId: student.id, examId: exam.id } });
-    if (existing) return res.status(400).json({ message: 'You have already attempted this exam' });
-    
-    const allQuestions = await Question.findAll({ 
-      where: { subjectId: exam.subjectId, courseId: exam.courseId, isActive: true } 
-    });
-    
-    if (allQuestions.length < exam.questionsPerExam) {
-      return res.status(400).json({ message: `Not enough questions. Need ${exam.questionsPerExam}, have ${allQuestions.length}` });
+    const isAdminOrTeacher = req.user && ['admin', 'superadmin', 'teacher'].includes(req.user.role);
+
+    // Enforce active status and student profile checks ONLY for non-admin students
+    if (!isAdminOrTeacher && req.query.preview !== 'true') {
+      if (exam.status !== 'active') return res.status(400).json({ message: 'Exam is not active' });
+      
+      const student = await Student.findOne({ where: { email: req.user.email } });
+      if (!student) return res.status(404).json({ message: 'Student profile not found. Only registered students can attempt exams.' });
+      
+      const existing = await Result.findOne({ where: { studentId: student.id, examId: exam.id } });
+      if (existing) return res.status(400).json({ message: 'You have already attempted this exam' });
     }
     
-    let selected = shuffleArray([...allQuestions]).slice(0, exam.questionsPerExam);
+    // Smart Question Sync with Fallbacks
+    let whereClause = {};
+    if (exam.subjectId) whereClause.subjectId = exam.subjectId;
+    if (exam.courseId) whereClause.courseId = exam.courseId;
+    if (exam.chapter && exam.chapter !== 'General') whereClause.chapter = exam.chapter;
+
+    let allQuestions = await Question.findAll({ where: whereClause });
+
+    // Fallback 1: Remove chapter filter if no chapter-specific questions found
+    if (allQuestions.length === 0 && exam.chapter && exam.chapter !== 'General') {
+      delete whereClause.chapter;
+      allQuestions = await Question.findAll({ where: whereClause });
+    }
+
+    // Fallback 2: Match by Subject ID alone
+    if (allQuestions.length === 0 && exam.subjectId) {
+      allQuestions = await Question.findAll({ where: { subjectId: exam.subjectId } });
+    }
+
+    // Fallback 3: Match by Course ID alone
+    if (allQuestions.length === 0 && exam.courseId) {
+      allQuestions = await Question.findAll({ where: { courseId: exam.courseId } });
+    }
+
+    // Fallback 4: Fetch all questions in system
+    if (allQuestions.length === 0) {
+      allQuestions = await Question.findAll();
+    }
+
+    // If zero questions in DB, return error message
+    if (allQuestions.length === 0) {
+      return res.status(400).json({ message: 'No questions available in the question bank for this exam. Please add questions first.' });
+    }
+
+    // Dynamic question cap - use available questions up to questionsPerExam
+    const targetCount = Math.min(exam.questionsPerExam || 50, allQuestions.length);
+    let selected = shuffleArray([...allQuestions]).slice(0, targetCount);
     
     const questions = selected.map(q => {
       const opts = [
@@ -408,6 +442,7 @@ exports.importQuestions = async (req, res) => {
 
       const rawCourse = getField(row, ['Course', 'course', 'Course Name', 'CourseName', 'Course Code', 'CourseCode']);
       const rawSubject = getField(row, ['Subject', 'subject', 'Subject Name', 'SubjectName', 'Subject Code', 'SubjectCode']);
+      const rawChapter = getField(row, ['Chapter', 'chapter', 'Chapter Name', 'ChapterName', 'Topic', 'topic', 'Folder', 'folder']);
       const rawDiff = getField(row, ['Difficulty', 'difficulty', 'Level', 'level']);
       const rawMarks = parseInt(getField(row, ['Marks', 'marks', 'Mark', 'mark'])) || 1;
       const rawExp = getField(row, ['Explanation', 'explanation', 'Exp', 'exp']);
@@ -443,9 +478,12 @@ exports.importQuestions = async (req, res) => {
         }
       }
 
-      // 2. Resolve Subject
+      // 2. Resolve Subject (Active UI subject takes priority if uploaded inside a specific subject)
       let subject = null;
-      if (rawSubject) {
+      if (req.body.subjectId) {
+        subject = allSubjects.find(s => String(s.id) === String(req.body.subjectId)) || null;
+      }
+      if (!subject && rawSubject) {
         const cleanSubj = rawSubject.toLowerCase().trim();
         if (course) {
           subject = allSubjects.find(s => 
@@ -484,13 +522,35 @@ exports.importQuestions = async (req, res) => {
             subject = allSubjects[0] || null;
           }
         }
-      } else {
-        if (course) {
-          subject = allSubjects.find(s => s.courseId === course.id);
-        }
-        if (!subject) {
-          subject = allSubjects[0] || null;
-        }
+      }
+      if (!subject && course) {
+        subject = allSubjects.find(s => s.courseId === course.id);
+      }
+      if (!subject) {
+        subject = allSubjects[0] || null;
+      }
+
+      // 3. Resolve Chapter (Active UI chapter takes priority if uploaded inside a specific chapter)
+      const finalChapter = (req.body.chapter && req.body.chapter.trim()) 
+        ? req.body.chapter.trim() 
+        : ((rawChapter && rawChapter.trim()) ? rawChapter.trim() : 'General');
+
+      // Sanitize foreign keys to ensure SQLite Foreign Key constraints NEVER fail
+      let validCourseId = null;
+      if (course && course.id) {
+        const cExist = allCourses.find(c => String(c.id) === String(course.id));
+        if (cExist) validCourseId = cExist.id;
+      }
+      
+      let validSubjectId = null;
+      if (subject && subject.id) {
+        const sExist = allSubjects.find(s => String(s.id) === String(subject.id));
+        if (sExist) validSubjectId = sExist.id;
+      }
+
+      if (!validCourseId && validSubjectId) {
+        const sObj = allSubjects.find(s => String(s.id) === String(validSubjectId));
+        if (sObj && sObj.courseId) validCourseId = sObj.courseId;
       }
 
       try {
@@ -501,8 +561,9 @@ exports.importQuestions = async (req, res) => {
           optionC: String(optC),
           optionD: String(optD),
           correctAnswer,
-          courseId: course ? course.id : null,
-          subjectId: subject ? subject.id : null,
+          courseId: validCourseId,
+          subjectId: validSubjectId,
+          chapter: finalChapter,
           difficulty: normalizeDifficulty(rawDiff),
           marks: rawMarks,
           explanation: rawExp || null,
@@ -510,6 +571,7 @@ exports.importQuestions = async (req, res) => {
         });
         imported++;
       } catch (insertErr) {
+        console.error(`Row ${rowNum} import error:`, insertErr);
         errors.push(`Row ${rowNum}: ${insertErr.message}`);
       }
     }
@@ -547,10 +609,61 @@ exports.getQuestions = async (req, res) => {
 
 exports.addQuestion = async (req, res) => {
   try {
-    const { course, subject, ...rest } = req.body;
-    const q = await Question.create({ ...rest, courseId: course, subjectId: subject });
-    res.status(201).json(q);
+    const { course, subject, courseId, subjectId, chapter, correctAnswer, difficulty, marks, question, optionA, optionB, optionC, optionD, ...rest } = req.body;
+    
+    // Normalize Correct Answer to A, B, C, D
+    let normCorrect = String(correctAnswer || 'A').trim().toUpperCase();
+    if (!['A', 'B', 'C', 'D'].includes(normCorrect)) normCorrect = 'A';
+
+    // Normalize Difficulty to easy, medium, hard
+    let normDiff = String(difficulty || 'medium').trim().toLowerCase();
+    if (!['easy', 'medium', 'hard'].includes(normDiff)) normDiff = 'medium';
+
+    const normMarks = parseInt(marks) || 1;
+
+    // Parse integer IDs or null to prevent SQLITE_CONSTRAINT foreign key errors
+    const rawCourse = course || courseId;
+    const rawSubject = subject || subjectId;
+
+    const targetCourseId = (rawCourse && String(rawCourse).trim() !== '' && !isNaN(rawCourse)) ? parseInt(rawCourse) : null;
+    const targetSubjectId = (rawSubject && String(rawSubject).trim() !== '' && !isNaN(rawSubject)) ? parseInt(rawSubject) : null;
+
+    // Validate foreign keys exist
+    let validSubjectId = null;
+    if (targetSubjectId) {
+      const sExists = await Subject.findByPk(targetSubjectId);
+      if (sExists) validSubjectId = targetSubjectId;
+    }
+
+    let validCourseId = null;
+    if (targetCourseId) {
+      const cExists = await Course.findByPk(targetCourseId);
+      if (cExists) validCourseId = targetCourseId;
+    } else if (validSubjectId) {
+      const sObj = await Subject.findByPk(validSubjectId);
+      if (sObj && sObj.courseId) validCourseId = sObj.courseId;
+    }
+
+    const q = await Question.create({
+      ...rest,
+      question: String(question || '').trim(),
+      optionA: String(optionA || '').trim(),
+      optionB: String(optionB || '').trim(),
+      optionC: String(optionC || '').trim(),
+      optionD: String(optionD || '').trim(),
+      correctAnswer: normCorrect,
+      difficulty: normDiff,
+      marks: normMarks,
+      courseId: validCourseId,
+      subjectId: validSubjectId,
+      chapter: (chapter && chapter.trim()) ? chapter.trim() : 'General',
+      isActive: true
+    });
+
+    const created = await Question.findByPk(q.id, { include: ['course', 'subject'] });
+    res.status(201).json(created);
   } catch (err) {
+    console.error('Error in addQuestion:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -568,19 +681,253 @@ exports.deleteQuestion = async (req, res) => {
 
 exports.updateQuestion = async (req, res) => {
   try {
-    const { course, subject, courseId, subjectId, ...rest } = req.body;
+    const { course, subject, courseId, subjectId, chapter, correctAnswer, difficulty, marks, question, optionA, optionB, optionC, optionD, ...rest } = req.body;
     const q = await Question.findByPk(req.params.id);
     if (!q) return res.status(404).json({ message: 'Question not found' });
     
+    let normCorrect = q.correctAnswer;
+    if (correctAnswer) {
+      normCorrect = String(correctAnswer).trim().toUpperCase();
+      if (!['A', 'B', 'C', 'D'].includes(normCorrect)) normCorrect = 'A';
+    }
+
+    let normDiff = q.difficulty;
+    if (difficulty) {
+      normDiff = String(difficulty).trim().toLowerCase();
+      if (!['easy', 'medium', 'hard'].includes(normDiff)) normDiff = 'medium';
+    }
+
+    const rawCourse = course || courseId;
+    const rawSubject = subject || subjectId;
+
+    const targetCourseId = (rawCourse && String(rawCourse).trim() !== '' && !isNaN(rawCourse)) ? parseInt(rawCourse) : null;
+    const targetSubjectId = (rawSubject && String(rawSubject).trim() !== '' && !isNaN(rawSubject)) ? parseInt(rawSubject) : null;
+
+    let validSubjectId = q.subjectId;
+    if (targetSubjectId !== null) {
+      const sExists = await Subject.findByPk(targetSubjectId);
+      validSubjectId = sExists ? targetSubjectId : null;
+    }
+
+    let validCourseId = q.courseId;
+    if (targetCourseId !== null) {
+      const cExists = await Course.findByPk(targetCourseId);
+      validCourseId = cExists ? targetCourseId : null;
+    }
+
     await q.update({
       ...rest,
-      courseId: course || courseId || q.courseId,
-      subjectId: subject || subjectId || q.subjectId
+      question: question ? String(question).trim() : q.question,
+      optionA: optionA ? String(optionA).trim() : q.optionA,
+      optionB: optionB ? String(optionB).trim() : q.optionB,
+      optionC: optionC ? String(optionC).trim() : q.optionC,
+      optionD: optionD ? String(optionD).trim() : q.optionD,
+      correctAnswer: normCorrect,
+      difficulty: normDiff,
+      marks: marks ? (parseInt(marks) || 1) : q.marks,
+      courseId: validCourseId,
+      subjectId: validSubjectId,
+      chapter: chapter !== undefined ? ((chapter && chapter.trim()) ? chapter.trim() : 'General') : q.chapter
     });
     
     const updated = await Question.findByPk(q.id, { include: ['course', 'subject'] });
     res.json(updated);
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteAllQuestions = async (req, res) => {
+  try {
+    const subjectId = req.body?.subjectId || req.query?.subjectId;
+    const chapter = req.body?.chapter || req.query?.chapter;
+    const courseId = req.body?.courseId || req.query?.courseId;
+
+    let where = {};
+    if (subjectId) where.subjectId = subjectId;
+    if (chapter) where.chapter = chapter;
+    if (courseId) where.courseId = courseId;
+
+    const count = await Question.destroy({ where, truncate: false });
+    res.json({ message: `Successfully deleted ${count} questions.`, deletedCount: count });
+  } catch (err) {
+    console.error('Error in deleteAllQuestions:', err);
+    res.status(500).json({ message: err.message || 'Failed to delete questions' });
+  }
+};
+
+exports.seedDemoData = async (req, res) => {
+  try {
+    // 1. Ensure/Create Course
+    let [course] = await Course.findOrCreate({
+      where: { code: 'COMM12' },
+      defaults: {
+        name: 'Class 12 Commerce',
+        code: 'COMM12',
+        category: 'Commerce',
+        fees: 15000,
+        description: 'Complete Class 12 Commerce Preparation'
+      }
+    });
+
+    // 2. Ensure/Create Subjects
+    let [subjectAcc] = await Subject.findOrCreate({
+      where: { name: 'Accountancy', courseId: course.id },
+      defaults: {
+        name: 'Accountancy',
+        code: 'ACC12',
+        courseId: course.id,
+        description: 'Class 12 Accountancy & Financial Management'
+      }
+    });
+
+    let [subjectBst] = await Subject.findOrCreate({
+      where: { name: 'Business Studies', courseId: course.id },
+      defaults: {
+        name: 'Business Studies',
+        code: 'BST12',
+        courseId: course.id,
+        description: 'Principles & Functions of Management'
+      }
+    });
+
+    // 3. Seed Sample Questions
+    const sampleQuestions = [
+      {
+        question: 'Sacrificing Ratio is calculated as:',
+        optionA: 'New Ratio − Old Ratio',
+        optionB: 'Old Ratio − New Ratio',
+        optionC: 'Old Ratio × New Ratio',
+        optionD: 'Gaining Ratio − Old Ratio',
+        correctAnswer: 'B',
+        courseId: course.id,
+        subjectId: subjectAcc.id,
+        chapter: 'Chapter 1: Partnership Accounting',
+        difficulty: 'easy',
+        marks: 1,
+        explanation: 'Sacrificing Ratio = Old Ratio − New Ratio.'
+      },
+      {
+        question: 'On admission of a new partner, increase in value of an asset is credited to:',
+        optionA: 'Revaluation Account',
+        optionB: 'Asset Account',
+        optionC: 'Old Partners Capital Account',
+        optionD: 'Profit & Loss Account',
+        correctAnswer: 'A',
+        courseId: course.id,
+        subjectId: subjectAcc.id,
+        chapter: 'Chapter 1: Partnership Accounting',
+        difficulty: 'medium',
+        marks: 1,
+        explanation: 'Increase in asset value is a gain, so it is credited to Revaluation A/c.'
+      },
+      {
+        question: 'Which of the following is NOT an outflow of cash under Financing Activities?',
+        optionA: 'Redemption of Debentures',
+        optionB: 'Payment of Dividend',
+        optionC: 'Purchase of Plant and Machinery',
+        optionD: 'Repayment of Long-term Bank Loan',
+        correctAnswer: 'C',
+        courseId: course.id,
+        subjectId: subjectAcc.id,
+        chapter: 'Chapter 2: Financial Statements',
+        difficulty: 'medium',
+        marks: 1,
+        explanation: 'Purchase of fixed assets is an Investing Activity, not a Financing Activity.'
+      },
+      {
+        question: 'Securities Premium Reserve CANNOT be utilized for which of the following purposes?',
+        optionA: 'Issuing fully paid bonus shares',
+        optionB: 'Writing off preliminary expenses',
+        optionC: 'Distribution of cash dividend to shareholders',
+        optionD: 'Writing off discount on issue of debentures',
+        correctAnswer: 'C',
+        courseId: course.id,
+        subjectId: subjectAcc.id,
+        chapter: 'Chapter 2: Financial Statements',
+        difficulty: 'hard',
+        marks: 1,
+        explanation: 'Section 52(2) of Companies Act 2013 prohibits distribution of dividends from Securities Premium.'
+      },
+      {
+        question: 'Which management function involves establishing authority-responsibility relationships?',
+        optionA: 'Planning',
+        optionB: 'Organising',
+        optionC: 'Staffing',
+        optionD: 'Directing',
+        correctAnswer: 'B',
+        courseId: course.id,
+        subjectId: subjectBst.id,
+        chapter: 'Chapter 1: Principles of Management',
+        difficulty: 'easy',
+        marks: 1,
+        explanation: 'Organising defines organizational structure and authority hierarchy.'
+      }
+    ];
+
+    let createdQCount = 0;
+    for (const qData of sampleQuestions) {
+      const [q, created] = await Question.findOrCreate({
+        where: { question: qData.question },
+        defaults: qData
+      });
+      if (created) createdQCount++;
+    }
+
+    // 4. Seed Sample Exams
+    const sampleExams = [
+      {
+        title: 'Class 12 Accountancy - Partnership Test',
+        courseId: course.id,
+        subjectId: subjectAcc.id,
+        chapter: 'Chapter 1: Partnership Accounting',
+        totalQuestions: 10,
+        questionsPerExam: 5,
+        duration: 30,
+        totalMarks: 10,
+        passingMarks: 4,
+        status: 'active',
+        instructions: 'Attempt all questions. Each question carries equal marks.',
+        shuffleQuestions: true,
+        shuffleOptions: true,
+        negativeMarking: false
+      },
+      {
+        title: 'Financial Statements Master Quiz',
+        courseId: course.id,
+        subjectId: subjectAcc.id,
+        chapter: 'Chapter 2: Financial Statements',
+        totalQuestions: 10,
+        questionsPerExam: 5,
+        duration: 45,
+        totalMarks: 15,
+        passingMarks: 6,
+        status: 'active',
+        instructions: 'Test your understanding of Balance Sheets & Cash Flow Statements.',
+        shuffleQuestions: true,
+        shuffleOptions: true,
+        negativeMarking: true,
+        negativeMarks: 0.25
+      }
+    ];
+
+    let createdECount = 0;
+    for (const eData of sampleExams) {
+      const [e, created] = await Exam.findOrCreate({
+        where: { title: eData.title },
+        defaults: eData
+      });
+      if (created) createdECount++;
+    }
+
+    res.json({
+      success: true,
+      message: `Demo Data Seeded Successfully! (${createdQCount} Questions, ${createdECount} Exams created under Course: Class 12 Commerce)`,
+      course,
+      subject: subjectAcc
+    });
+  } catch (err) {
+    console.error('Error in seedDemoData:', err);
     res.status(500).json({ message: err.message });
   }
 };
