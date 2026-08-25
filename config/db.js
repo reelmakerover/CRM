@@ -9,18 +9,25 @@ const sqlitePath = process.env.DB_STORAGE || (
   path.join(__dirname, 'database.sqlite')
 );
 
-// If DB_HOST is explicitly remote or we are on cPanel/Production, use MySQL. Otherwise SQLite for local dev.
-const isMysqlMode = process.env.DB_DIALECT === 'mysql' && process.env.DB_HOST && process.env.DB_HOST !== '127.0.0.1' && process.env.DB_HOST !== 'localhost';
+// Determine DB Dialect: Prioritize MySQL for cPanel / production
+const isMysqlMode = process.env.DB_DIALECT === 'mysql' || 
+                    process.env.USE_SQLITE === 'false' || 
+                    Boolean(process.env.DB_NAME) || 
+                    process.env.NODE_ENV === 'production';
 
 let sequelize;
 
 if (isMysqlMode) {
+  const rawHost = process.env.DB_HOST || '127.0.0.1';
+  // On cPanel/Linux Node 17+, "localhost" resolves to IPv6 ::1, which fails. Enforce IPv4 127.0.0.1
+  const dbHost = (rawHost === 'localhost' || !rawHost) ? '127.0.0.1' : rawHost;
+  
   sequelize = new Sequelize(
     process.env.DB_NAME || 'dseducation_crm',
     process.env.DB_USER || 'dseducation_crm',
     process.env.DB_PASS || 'DS_Education_2026!',
     {
-      host: process.env.DB_HOST,
+      host: dbHost,
       dialect: 'mysql',
       logging: false,
       pool: { max: 10, min: 0, acquire: 30000, idle: 10000 }
