@@ -6,13 +6,13 @@ require('dotenv').config();
 const isMysqlMode = process.env.DB_DIALECT === 'mysql' || process.env.USE_SQLITE === 'false';
 const useSqlite = !isMysqlMode && (process.env.DB_DIALECT === 'sqlite' || process.env.USE_SQLITE === 'true');
 
-let sequelize;
-
 const sqlitePath = process.env.DB_STORAGE || (
   fs.existsSync(path.join(__dirname, '../database.sqlite')) ? path.join(__dirname, '../database.sqlite') :
   fs.existsSync(path.join(process.cwd(), 'database.sqlite')) ? path.join(process.cwd(), 'database.sqlite') :
   path.join(__dirname, 'database.sqlite')
 );
+
+let sequelize;
 
 if (useSqlite) {
   sequelize = new Sequelize({
@@ -33,13 +33,13 @@ if (useSqlite) {
     pool: { max: 10, min: 0, acquire: 30000, idle: 10000 }
   });
 } else {
-  const dbHost = process.env.DB_HOST || '127.0.0.1';
+  const dbHost = process.env.DB_HOST || 'localhost';
   sequelize = new Sequelize(
     process.env.DB_NAME || 'dseducation_crm',
     process.env.DB_USER || 'dseducation_crm',
     process.env.DB_PASS || 'DS_Education_2026!',
     {
-      host: dbHost === 'localhost' ? '127.0.0.1' : dbHost,
+      host: dbHost,
       dialect: 'mysql',
       logging: false,
       pool: { max: 10, min: 0, acquire: 30000, idle: 10000 }
@@ -49,21 +49,19 @@ if (useSqlite) {
 
 const connectDB = async () => {
   try {
-    if (sequelize) {
-      await sequelize.authenticate();
-      console.log(`✅ Primary Database Connected (${sequelize.getDialect().toUpperCase()})`);
-      return;
-    }
+    await sequelize.authenticate();
+    console.log(`✅ Primary Database Connected (${sequelize.getDialect().toUpperCase()})`);
+    return;
   } catch (error) {
     console.error('⚠️ Primary DB Connection Error:', error.message);
   }
 
-  // Smart fallback retry for cPanel MySQL user/host variations
-  if (process.env.DB_DIALECT === 'mysql' || !useSqlite) {
+  // Smart fallback retry for cPanel MySQL user/host variations (e.g. 127.0.0.1 vs localhost)
+  if (isMysqlMode) {
     const dbName = process.env.DB_NAME || 'dseducation_crm';
     const dbPass = process.env.DB_PASS || 'DS_Education_2026!';
     const userCandidates = [...new Set([process.env.DB_USER, 'dseducation_crm', 'dseducation_admin'].filter(Boolean))];
-    const hostCandidates = ['127.0.0.1', 'localhost'];
+    const hostCandidates = ['localhost', '127.0.0.1'];
 
     for (const u of userCandidates) {
       for (const h of hostCandidates) {
@@ -79,13 +77,13 @@ const connectDB = async () => {
           module.exports.sequelize = altSequelize;
           return;
         } catch (retryErr) {
-          // silently continue to next candidate
+          // try next candidate
         }
       }
     }
   }
 
-  // Ultimate fallback to SQLite if MySQL is unavailable locally
+  // Ultimate fallback to SQLite if MySQL service is unavailable
   try {
     const sqliteFallback = new Sequelize({
       dialect: 'sqlite',
