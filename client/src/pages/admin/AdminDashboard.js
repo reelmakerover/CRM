@@ -145,9 +145,37 @@ export default function AdminDashboard() {
                     </td>
                     <td><span className="text-sm">{s.course?.name || '—'}</span></td>
                     <td>
-                      <span className={`badge text-xs ${s.fees?.pendingAmount > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                        {s.fees?.pendingAmount > 0 ? `₹${s.fees.pendingAmount} due` : 'Paid'}
-                      </span>
+                      {(() => {
+                        const total = Number(s.fees?.totalFees || 0);
+                        const paid = Number(s.fees?.paidAmount || 0);
+                        const pending = Number(s.fees?.pendingAmount ?? (total - paid));
+
+                        if (total === 0) {
+                          return (
+                            <span className="badge text-xs bg-slate-100 text-slate-600 border border-slate-200 font-semibold px-2 py-0.5 rounded-full">
+                              🏷️ Fee Not Set
+                            </span>
+                          );
+                        } else if (pending <= 0 && paid > 0) {
+                          return (
+                            <span className="badge text-xs bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2 py-0.5 rounded-full">
+                              ✓ Paid
+                            </span>
+                          );
+                        } else if (paid > 0 && pending > 0) {
+                          return (
+                            <span className="badge text-xs bg-amber-100 text-amber-800 border border-amber-200 font-bold px-2 py-0.5 rounded-full">
+                              ⏳ ₹{pending.toLocaleString()} Due
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span className="badge text-xs bg-rose-100 text-rose-800 border border-rose-200 font-bold px-2 py-0.5 rounded-full">
+                              ⚠️ Unpaid
+                            </span>
+                          );
+                        }
+                      })()}
                     </td>
                     <td><span className="text-xs text-slate-500">{new Date(s.createdAt).toLocaleDateString('en-IN')}</span></td>
                   </tr>

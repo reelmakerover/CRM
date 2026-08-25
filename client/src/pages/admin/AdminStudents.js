@@ -163,12 +163,49 @@ export default function AdminStudents() {
                       <div className="text-xs text-slate-400">{s.parentPhone || ''}</div>
                     </td>
                     <td>
-                      <div>
-                        <span className={`badge text-xs ${s.fees?.pendingAmount > 0 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                          {s.fees?.pendingAmount > 0 ? `₹${s.fees.pendingAmount} pending` : 'Fully Paid'}
-                        </span>
-                        <div className="text-xs text-slate-400 mt-0.5">Paid: ₹{s.fees?.paidAmount || 0} / ₹{s.fees?.totalFees || 0}</div>
-                      </div>
+                      {(() => {
+                        const total = Number(s.fees?.totalFees || 0);
+                        const paid = Number(s.fees?.paidAmount || 0);
+                        const pending = Number(s.fees?.pendingAmount ?? (total - paid));
+
+                        if (total === 0) {
+                          return (
+                            <div>
+                              <span className="badge text-[11px] bg-slate-100 text-slate-600 border border-slate-200 font-semibold px-2.5 py-0.5 rounded-full">
+                                🏷️ Fee Not Set
+                              </span>
+                              <div className="text-[11px] text-slate-400 mt-0.5 font-medium">Unassigned / New</div>
+                            </div>
+                          );
+                        } else if (pending <= 0 && paid > 0) {
+                          return (
+                            <div>
+                              <span className="badge text-[11px] bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold px-2.5 py-0.5 rounded-full">
+                                ✓ Fully Paid
+                              </span>
+                              <div className="text-[11px] text-slate-500 mt-0.5 font-medium">Paid: ₹{paid.toLocaleString()} / ₹{total.toLocaleString()}</div>
+                            </div>
+                          );
+                        } else if (paid > 0 && pending > 0) {
+                          return (
+                            <div>
+                              <span className="badge text-[11px] bg-amber-100 text-amber-800 border border-amber-200 font-bold px-2.5 py-0.5 rounded-full">
+                                ⏳ ₹{pending.toLocaleString()} Pending
+                              </span>
+                              <div className="text-[11px] text-slate-500 mt-0.5 font-medium">Paid: ₹{paid.toLocaleString()} / ₹{total.toLocaleString()}</div>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div>
+                              <span className="badge text-[11px] bg-rose-100 text-rose-800 border border-rose-200 font-bold px-2.5 py-0.5 rounded-full">
+                                ⚠️ Unpaid (₹{total.toLocaleString()})
+                              </span>
+                              <div className="text-[11px] text-slate-500 mt-0.5 font-medium">Paid: ₹0 / ₹{total.toLocaleString()}</div>
+                            </div>
+                          );
+                        }
+                      })()}
                     </td>
                     <td className="text-xs text-slate-500">{new Date(s.createdAt).toLocaleDateString('en-IN')}</td>
                     <td>
