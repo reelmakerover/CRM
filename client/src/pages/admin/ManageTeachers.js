@@ -15,7 +15,8 @@ const EMPTY_TEACHER = {
   experience: '5+ Years',
   assignedBatches: [],
   assignedSubjects: [],
-  assignedCourses: []
+  assignedCourses: [],
+  permissions: ['batches', 'attendance', 'exams', 'questions', 'results']
 };
 
 export default function ManageTeachers() {
@@ -74,9 +75,18 @@ export default function ManageTeachers() {
       experience: t.experience || '',
       assignedBatches: Array.isArray(t.assignedBatches) ? t.assignedBatches : [],
       assignedSubjects: Array.isArray(t.assignedSubjects) ? t.assignedSubjects : [],
-      assignedCourses: Array.isArray(t.assignedCourses) ? t.assignedCourses : []
+      assignedCourses: Array.isArray(t.assignedCourses) ? t.assignedCourses : [],
+      permissions: Array.isArray(t.permissions) && t.permissions.length > 0 ? t.permissions : ['batches', 'attendance', 'exams', 'questions', 'results']
     });
     setModal(true);
+  };
+
+  const handlePermissionToggle = (permKey) => {
+    setForm(p => {
+      const current = Array.isArray(p.permissions) ? p.permissions : ['batches', 'attendance', 'exams', 'questions', 'results'];
+      const updated = current.includes(permKey) ? current.filter(x => x !== permKey) : [...current, permKey];
+      return { ...p, permissions: updated };
+    });
   };
 
   const handleBatchToggle = (batchId) => {
@@ -178,6 +188,7 @@ export default function ManageTeachers() {
                 <th>Password</th>
                 <th>Assigned Batches</th>
                 <th>Assigned Subjects</th>
+                <th>Allowed Module Access</th>
                 <th className="text-right">Actions</th>
               </tr>
             </thead>
@@ -255,6 +266,20 @@ export default function ManageTeachers() {
                       </div>
                     </td>
 
+                    <td>
+                      <div className="flex flex-wrap gap-1 max-w-xs">
+                        {Array.isArray(t.permissions) && t.permissions.length > 0 ? (
+                          t.permissions.map(p => (
+                            <span key={p} className="badge bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-semibold capitalize">
+                              🔒 {p}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-emerald-600 font-bold">All Modules Access</span>
+                        )}
+                      </div>
+                    </td>
+
                     <td className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openEdit(t)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg">
@@ -271,7 +296,7 @@ export default function ManageTeachers() {
 
               {teachers.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="text-center py-12 text-slate-400 text-sm">
+                  <td colSpan={7} className="text-center py-12 text-slate-400 text-sm">
                     No teacher accounts created yet. Click "Add New Teacher" to assign your first faculty member.
                   </td>
                 </tr>
@@ -324,6 +349,49 @@ export default function ManageTeachers() {
                 <div>
                   <label className="label font-bold text-slate-800">Experience</label>
                   <input {...inp('experience')} className="input" placeholder="e.g. 8+ Years" />
+                </div>
+              </div>
+
+              {/* Module Access Permissions Checkboxes */}
+              <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <label className="label font-bold text-slate-800 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5"><FiKey className="text-emerald-600"/> Module Access Permissions:</span>
+                  <span className="text-[11px] text-slate-400 font-normal">Check which features this teacher can access</span>
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    { key: 'batches', label: 'Running Batches & Materials', icon: '📁', desc: 'Manage batch schedules & study notes' },
+                    { key: 'attendance', label: 'Daily Attendance & WhatsApp', icon: '📅', desc: 'Mark attendance & send parent alerts' },
+                    { key: 'exams', label: 'Chapter Tests & Exams', icon: '📝', desc: 'Create test papers & schedules' },
+                    { key: 'questions', label: 'Question Bank', icon: '❓', desc: 'Add/manage subject question bank' },
+                    { key: 'results', label: 'Student Results & Marks', icon: '🏆', desc: 'View student scores & evaluation' }
+                  ].map(item => {
+                    const isChecked = Array.isArray(form.permissions) && form.permissions.includes(item.key);
+                    return (
+                      <label 
+                        key={item.key} 
+                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          isChecked 
+                            ? 'bg-emerald-600 text-white border-emerald-700 font-bold shadow-xs' 
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <input 
+                          type="checkbox" 
+                          checked={isChecked} 
+                          onChange={() => handlePermissionToggle(item.key)}
+                          className="hidden" 
+                        />
+                        <span className="text-base">{item.icon}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate">{item.label}</div>
+                          <div className={`text-[10px] font-normal leading-tight mt-0.5 ${isChecked ? 'text-emerald-100' : 'text-slate-400'}`}>
+                            {item.desc}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 

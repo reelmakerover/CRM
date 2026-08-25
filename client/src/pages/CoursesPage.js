@@ -175,6 +175,14 @@ export default function CoursesPage() {
           </div>
         )}
 
+        {filtered.length === 0 && !loading && (
+          <div className="text-center py-20 text-slate-500">
+            <div className="text-5xl mb-4">📚</div>
+            <p className="text-xl font-medium">No courses available at the moment</p>
+            <p className="text-sm mt-2">New courses will be added soon. Contact us for custom inquiries.</p>
+          </div>
+        )}
+
         {/* CTA */}
         <div className="mt-16 bg-hero-gradient rounded-3xl p-10 text-center">
           <h2 className="font-display text-3xl font-bold text-white mb-4">Can't decide? Let us help!</h2>

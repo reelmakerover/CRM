@@ -269,45 +269,6 @@ connectDB().then(async () => {
         console.log(`✅ Admin verified: ${adminEmail}`);
       }
     }
-
-    // 4. Default Student Account
-    const Student = require('./models/Student');
-    const studentEmail = 'student@dseducation.com';
-    const studentPassword = 'Student@123';
-    
-    let studentUser = await User.findOne({ where: { email: studentEmail } });
-    if (!studentUser) {
-      studentUser = await User.create({
-        name: "Demo Student",
-        email: studentEmail,
-        password: studentPassword,
-        role: "student",
-        visiblePassword: studentPassword
-      });
-      console.log(`✅ Default Student User created: ${studentEmail}`);
-    } else {
-      const match = await studentUser.matchPassword(studentPassword);
-      if (!match) {
-        studentUser.password = studentPassword;
-        studentUser.visiblePassword = studentPassword;
-        await studentUser.save();
-        console.log(`✅ Student User password resynced: ${studentEmail}`);
-      } else {
-        console.log(`✅ Student User verified: ${studentEmail}`);
-      }
-    }
-
-    let studentProfile = await Student.findOne({ where: { email: studentEmail } });
-    if (!studentProfile) {
-      await Student.create({
-        name: "Demo Student",
-        email: studentEmail,
-        phone: "9876543210",
-        enrollmentNo: "STU2026001",
-        status: "active"
-      });
-      console.log(`✅ Default Student Profile created: ${studentEmail}`);
-    }
   } catch (err) {
     console.error('Failed to ensure default admin credentials on startup:', err.message);
   }

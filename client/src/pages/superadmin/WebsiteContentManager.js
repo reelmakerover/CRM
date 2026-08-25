@@ -406,28 +406,92 @@ export default function WebsiteContentManager() {
       </div>
 
       {/* Hero Section Settings */}
-      <div className="card p-6 space-y-4">
+      <div className="card p-6 space-y-4 bg-white border border-slate-200 rounded-3xl shadow-sm">
         <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 border-b pb-3">
-          <FiLayout className="text-primary-500" /> Hero Section Settings
+          <FiLayout className="text-primary-500" /> Hero Section, Sub-checklist & Course Tags
         </h2>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Hero Main Title</label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Hero Main Title (HTML / Line Breaks allowed)</label>
             <input 
               type="text" name="hero_title" 
               value={settings.hero_title || ''} 
               onChange={handleChange}
-              className="input w-full" 
+              placeholder="CA & CMA Coaching Classes in Jaipur"
+              className="input w-full text-xs font-semibold" 
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Hero Subtitle</label>
-            <textarea 
-              name="hero_subtitle" rows={3}
+            <label className="block text-xs font-bold text-slate-700 mb-1">Hero Subtitle (Orange Tagline)</label>
+            <input 
+              type="text" name="hero_subtitle"
               value={settings.hero_subtitle || ''} 
               onChange={handleChange}
-              className="input w-full resize-none" 
+              placeholder="Your First Step Towards CA & CMA Success"
+              className="input w-full text-xs font-semibold" 
             />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold text-slate-700 mb-1">Sub-text Checklist Line</label>
+            <input 
+              type="text" name="hero_checklist" 
+              value={settings.hero_checklist || ''} 
+              onChange={handleChange}
+              placeholder="Concept-Based Teaching | Regular Tests | Doubt Support | Exam-Oriented Preparation | Trusted by 1000+ Students"
+              className="input w-full text-xs" 
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-xs font-bold text-slate-700 mb-1">Hero Course Tags (Comma Separated)</label>
+            <input 
+              type="text" name="hero_tags" 
+              value={typeof settings.hero_tags === 'string' ? settings.hero_tags : (Array.isArray(settings.hero_tags) ? settings.hero_tags.join(', ') : '')} 
+              onChange={handleChange}
+              placeholder="CA Foundation, CMA Foundation, CA Intermediate, CMA Intermediate, 11th Commerce, 12th Commerce, B.Com / BBA"
+              className="input w-full text-xs" 
+            />
+          </div>
+        </div>
+
+        {/* Key Stats Ribbon & Admissions Banner */}
+        <div className="pt-4 border-t space-y-3">
+          <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Key Stats Ribbon & Admissions Banner Text</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">Exp. Year</label>
+              <input type="text" name="stat_experience" value={settings.stat_experience || ''} onChange={handleChange} placeholder="2017" className="input w-full text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">Students Count</label>
+              <input type="text" name="stat_students" value={settings.stat_students || ''} onChange={handleChange} placeholder="1000+" className="input w-full text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">Faculty Text</label>
+              <input type="text" name="stat_faculty" value={settings.stat_faculty || ''} onChange={handleChange} placeholder="CA & CMA" className="input w-full text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">Test Series</label>
+              <input type="text" name="stat_tests" value={settings.stat_tests || ''} onChange={handleChange} placeholder="Regular" className="input w-full text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">Success Rate</label>
+              <input type="text" name="stat_success" value={settings.stat_success || ''} onChange={handleChange} placeholder="High" className="input w-full text-xs" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">CTA Banner Title</label>
+              <input type="text" name="cta_title" value={settings.cta_title || ''} onChange={handleChange} placeholder="Admissions Open" className="input w-full text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">CTA Banner Subtitle</label>
+              <input type="text" name="cta_subtitle" value={settings.cta_subtitle || ''} onChange={handleChange} placeholder="Join Today & Start Your Success Journey!" className="input w-full text-xs" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 mb-1">CTA Button Text</label>
+              <input type="text" name="cta_btn_text" value={settings.cta_btn_text || ''} onChange={handleChange} placeholder="Join Now" className="input w-full text-xs" />
+            </div>
           </div>
         </div>
       </div>

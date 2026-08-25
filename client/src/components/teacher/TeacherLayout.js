@@ -9,12 +9,12 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 const NAV = [
-  { icon: <FiHome />, label: 'Dashboard', path: '/teacher/dashboard' },
-  { icon: <FiFolder />, label: 'Running Batches', path: '/teacher/batches' },
-  { icon: <FiCheckSquare />, label: 'Daily Attendance & WhatsApp', path: '/teacher/attendance' },
-  { icon: <FiClipboard />, label: 'Chapter Tests', path: '/teacher/exams' },
-  { icon: <FiHelpCircle />, label: 'Question Bank', path: '/teacher/questions' },
-  { icon: <FiBarChart2 />, label: 'Student Results', path: '/teacher/results' },
+  { key: 'dashboard', icon: <FiHome />, label: 'Dashboard', path: '/teacher/dashboard' },
+  { key: 'batches', icon: <FiFolder />, label: 'Running Batches', path: '/teacher/batches' },
+  { key: 'attendance', icon: <FiCheckSquare />, label: 'Daily Attendance & WhatsApp', path: '/teacher/attendance' },
+  { key: 'exams', icon: <FiClipboard />, label: 'Chapter Tests', path: '/teacher/exams' },
+  { key: 'questions', icon: <FiHelpCircle />, label: 'Question Bank', path: '/teacher/questions' },
+  { key: 'results', icon: <FiBarChart2 />, label: 'Student Results', path: '/teacher/results' },
 ];
 
 export default function TeacherLayout() {
@@ -28,6 +28,13 @@ export default function TeacherLayout() {
     toast.success('Logged out successfully');
     navigate('/login');
   };
+
+  const userPerms = Array.isArray(user?.permissions) ? user.permissions : [];
+  const filteredNav = NAV.filter(item => {
+    if (item.key === 'dashboard') return true;
+    if (userPerms.length === 0 || userPerms.includes('all')) return true;
+    return userPerms.includes(item.key);
+  });
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-slate-900 text-slate-200">
@@ -48,7 +55,7 @@ export default function TeacherLayout() {
 
       {/* Navigation Links */}
       <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
-        {NAV.map(item => (
+        {filteredNav.map(item => (
           <NavLink 
             key={item.path} 
             to={item.path}

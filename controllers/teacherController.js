@@ -85,7 +85,8 @@ exports.createTeacher = async (req, res) => {
       experience, 
       assignedBatches, 
       assignedSubjects, 
-      assignedCourses 
+      assignedCourses,
+      permissions
     } = req.body;
 
     if (!name || !email || !password) {
@@ -100,6 +101,7 @@ exports.createTeacher = async (req, res) => {
     const batches = Array.isArray(assignedBatches) ? assignedBatches.map(Number) : [];
     const subjects = Array.isArray(assignedSubjects) ? assignedSubjects : [];
     const courses = Array.isArray(assignedCourses) ? assignedCourses : [];
+    const perms = Array.isArray(permissions) ? permissions : ['batches', 'attendance', 'exams', 'questions', 'results'];
 
     const teacher = await User.create({
       name,
@@ -113,7 +115,7 @@ exports.createTeacher = async (req, res) => {
       assignedBatches: batches,
       assignedSubjects: subjects,
       assignedCourses: courses,
-      permissions: ['exams', 'questions', 'batches', 'attendance', 'students']
+      permissions: perms
     });
 
     const sanitized = teacher.toJSON();
@@ -149,7 +151,8 @@ exports.updateTeacher = async (req, res) => {
       experience, 
       assignedBatches, 
       assignedSubjects, 
-      assignedCourses 
+      assignedCourses,
+      permissions
     } = req.body;
 
     if (name) teacher.name = name;
@@ -160,6 +163,7 @@ exports.updateTeacher = async (req, res) => {
     if (assignedBatches !== undefined) teacher.assignedBatches = Array.isArray(assignedBatches) ? assignedBatches.map(Number) : [];
     if (assignedSubjects !== undefined) teacher.assignedSubjects = Array.isArray(assignedSubjects) ? assignedSubjects : [];
     if (assignedCourses !== undefined) teacher.assignedCourses = Array.isArray(assignedCourses) ? assignedCourses : [];
+    if (permissions !== undefined) teacher.permissions = Array.isArray(permissions) ? permissions : [];
 
     if (password && password.trim()) {
       teacher.password = password;

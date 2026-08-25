@@ -194,6 +194,14 @@ export default function TestSeriesPage() {
             })}
           </div>
         )}
+
+        {examKits.length === 0 && !loading && (
+          <div className="text-center py-20 text-slate-500">
+            <div className="text-5xl mb-4">⚡</div>
+            <p className="text-xl font-medium">No test series packages available right now</p>
+            <p className="text-sm mt-2">New exam victory packages will be listed here soon.</p>
+          </div>
+        )}
       </div>
 
       {/* INSTANT BUY NOW / UPI QR CHECKOUT MODAL */}

@@ -183,26 +183,28 @@ export default function HomePage() {
               
               {/* Main Heading */}
               <div>
-                <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-[#0b193c] leading-[1.15] tracking-tight">
-                  CA & CMA Coaching<br />
-                  Classes in Jaipur
+                <h1 className="font-display text-3xl sm:text-4xl md:text-5xl font-black text-[#0b193c] leading-[1.15] tracking-tight whitespace-pre-line">
+                  {settings.hero_title || "CA & CMA Coaching\nClasses in Jaipur"}
                 </h1>
                 <p className="text-[#d9531e] font-extrabold text-lg sm:text-xl md:text-2xl mt-2 tracking-wide">
-                  Your First Step Towards CA & CMA Success
+                  {settings.hero_subtitle || "Your First Step Towards CA & CMA Success"}
                 </p>
               </div>
 
               {/* Sub-text Checklist Line */}
               <p className="text-slate-600 text-xs sm:text-sm font-semibold tracking-wide">
-                Concept-Based Teaching | Regular Tests | Doubt Support | Exam-Oriented Preparation | Trusted by 1000+ Students
+                {settings.hero_checklist || "Concept-Based Teaching | Regular Tests | Doubt Support | Exam-Oriented Preparation | Trusted by 1000+ Students"}
               </p>
 
               {/* Tags Grid (Dark Navy Pill Buttons) */}
               <div className="flex flex-wrap gap-2 pt-1">
-                {[
-                  'CA Foundation', 'CMA Foundation', 'CA Intermediate', 
-                  'CMA Intermediate', '11th Commerce', '12th Commerce', 'B.Com / BBA'
-                ].map((tag, idx) => (
+                {(typeof settings.hero_tags === 'string'
+                  ? settings.hero_tags.split(',').map(s => s.trim()).filter(Boolean)
+                  : (Array.isArray(settings.hero_tags) && settings.hero_tags.length > 0 ? settings.hero_tags : [
+                      'CA Foundation', 'CMA Foundation', 'CA Intermediate', 
+                      'CMA Intermediate', '11th Commerce', '12th Commerce', 'B.Com / BBA'
+                    ])
+                ).map((tag, idx) => (
                   <button 
                     key={idx}
                     onClick={() => openEnquireModal(tag)}
@@ -307,11 +309,11 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 items-center text-center">
             
             {[
-              { title: '2017', label: 'Experience', icon: '🎓' },
-              { title: '1000+', label: 'Happy Students', icon: '👥' },
-              { title: 'CA & CMA', label: 'Expert Faculty', icon: '👨‍🏫' },
-              { title: 'Regular', label: 'Test Series', icon: '📋' },
-              { title: 'High', label: 'Success Rate', icon: '🏆' },
+              { title: settings.stat_experience || '2017', label: 'Experience', icon: '🎓' },
+              { title: settings.stat_students || '1000+', label: 'Happy Students', icon: '👥' },
+              { title: settings.stat_faculty || 'CA & CMA', label: 'Expert Faculty', icon: '👨‍🏫' },
+              { title: settings.stat_tests || 'Regular', label: 'Test Series', icon: '📋' },
+              { title: settings.stat_success || 'High', label: 'Success Rate', icon: '🏆' },
             ].map((stat, idx) => (
               <div key={idx} className="flex flex-col items-center justify-center p-2 border-r last:border-r-0 border-slate-800/80">
                 <div className="text-amber-400 font-black text-lg sm:text-xl flex items-center gap-1.5">
@@ -339,42 +341,48 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
-            {displayCourses.map((c, idx) => {
-              const courseName = c.name || c.title || 'Course';
-              const badgeText = c.badge || (courseName.includes('CA') ? 'CA' : courseName.includes('CMA') ? 'CMA' : '11th');
-              const badgeBg = c.badgeBg || (idx % 2 === 0 ? 'bg-blue-600' : 'bg-amber-500');
-              const btnBg = c.btnBg || 'bg-blue-600 hover:bg-blue-700';
+          {displayCourses.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+              {displayCourses.map((c, idx) => {
+                const courseName = c.name || c.title || 'Course';
+                const badgeText = c.badge || (courseName.includes('CA') ? 'CA' : courseName.includes('CMA') ? 'CMA' : '11th');
+                const badgeBg = c.badgeBg || (idx % 2 === 0 ? 'bg-blue-600' : 'bg-amber-500');
+                const btnBg = c.btnBg || 'bg-blue-600 hover:bg-blue-700';
 
-              return (
-                <div 
-                  key={c.id || idx}
-                  className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-center group"
-                >
-                  <div>
-                    {/* Circle Logo Badge */}
-                    <div className={`w-14 h-14 ${badgeBg} text-white rounded-full mx-auto flex items-center justify-center font-black text-sm shadow-md mb-3 group-hover:scale-110 transition-transform`}>
-                      {badgeText}
+                return (
+                  <div 
+                    key={c.id || idx}
+                    className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between text-center group"
+                  >
+                    <div>
+                      {/* Circle Logo Badge */}
+                      <div className={`w-14 h-14 ${badgeBg} text-white rounded-full mx-auto flex items-center justify-center font-black text-sm shadow-md mb-3 group-hover:scale-110 transition-transform`}>
+                        {badgeText}
+                      </div>
+
+                      <h3 className="font-extrabold text-slate-900 text-sm mb-1.5 group-hover:text-blue-600 transition-colors line-clamp-1">
+                        {courseName}
+                      </h3>
+                      <p className="text-slate-500 text-[11px] leading-relaxed line-clamp-3 mb-4 font-medium">
+                        {c.description || c.desc || 'Complete conceptual guidance and exam preparation.'}
+                      </p>
                     </div>
 
-                    <h3 className="font-extrabold text-slate-900 text-sm mb-1.5 group-hover:text-blue-600 transition-colors line-clamp-1">
-                      {courseName}
-                    </h3>
-                    <p className="text-slate-500 text-[11px] leading-relaxed line-clamp-3 mb-4 font-medium">
-                      {c.description || c.desc || 'Complete conceptual guidance and exam preparation.'}
-                    </p>
+                    <button
+                      onClick={() => openEnquireModal(courseName)}
+                      className={`w-full py-1.5 px-3 rounded-md text-white font-extrabold text-xs shadow-xs transition-all ${btnBg} cursor-pointer`}
+                    >
+                      View Course
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => openEnquireModal(courseName)}
-                    className={`w-full py-1.5 px-3 rounded-md text-white font-extrabold text-xs shadow-xs transition-all ${btnBg} cursor-pointer`}
-                  >
-                    View Course
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-8 text-center text-slate-500 font-medium text-xs">
+              📚 Courses will be announced soon! Contact us for custom guidance.
+            </div>
+          )}
 
         </div>
       </section>
@@ -403,7 +411,7 @@ export default function HomePage() {
 
                 {/* 8 Feature List Grid */}
                 <div className="grid grid-cols-1 gap-2.5">
-                  {[
+                  {(Array.isArray(settings.why_us) && settings.why_us.length > 0 ? settings.why_us : [
                     { title: 'Experienced & Qualified Faculty', desc: 'Top mentors & subject experts', icon: '👨‍🏫' },
                     { title: 'Concept-Based Teaching', desc: '100% clarity on core fundamentals', icon: '💡' },
                     { title: 'Regular Tests & Performance Analysis', desc: 'Weekly topic & mock exams', icon: '📊' },
@@ -412,7 +420,7 @@ export default function HomePage() {
                     { title: 'Revision Classes & Practice Sessions', desc: 'Rigorous past paper practice', icon: '🔄' },
                     { title: 'Updated Study Material', desc: 'Comprehensive notes & question banks', icon: '📚' },
                     { title: 'Proven Track Record', desc: '98%+ Board & Foundation Pass Rate', icon: '🏆' },
-                  ].map((item, idx) => (
+                  ]).map((item, idx) => (
                     <div 
                       key={idx} 
                       className="p-2.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-amber-400 hover:shadow-md transition-all duration-200 flex items-center gap-3 group"
@@ -466,83 +474,89 @@ export default function HomePage() {
                 </div>
 
                 {/* Batches Cards Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {displayBatches.map((b, idx) => {
-                    const batchTitle = b.title || b.name || 'New Commerce Batch';
-                    const startDateFormatted = formatBatchDate(b.startDate || b.start_date || b.starting_date);
-                    const modeFormatted = formatBatchMode(b.mode);
-                    const isOrangeHeader = idx % 2 !== 0 || batchTitle.toLowerCase().includes('cma');
+                {displayBatches.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {displayBatches.map((b, idx) => {
+                      const batchTitle = b.title || b.name || 'New Commerce Batch';
+                      const startDateFormatted = formatBatchDate(b.startDate || b.start_date || b.starting_date);
+                      const modeFormatted = formatBatchMode(b.mode);
+                      const isOrangeHeader = idx % 2 !== 0 || batchTitle.toLowerCase().includes('cma');
 
-                    return (
-                      <div 
-                        key={b.id || idx} 
-                        className="rounded-2xl border-2 border-slate-200/80 hover:border-amber-400 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between bg-white group"
-                      >
-                        {/* Header Banner */}
-                        <div className={`p-3.5 text-white text-left ${
-                          isOrangeHeader 
-                            ? 'bg-gradient-to-r from-[#d9531e] via-[#e25d28] to-[#f26e38]' 
-                            : 'bg-gradient-to-r from-[#0b193c] via-[#14285b] to-[#1e3c84]'
-                        }`}>
-                          <div className="flex items-center justify-between text-[9px] font-extrabold uppercase tracking-widest text-amber-300 mb-1">
-                            <span>🔥 ENROLLING NOW</span>
-                            <span className="bg-white/20 px-2 py-0.5 rounded-full text-white">LIMITED SEATS</span>
+                      return (
+                        <div 
+                          key={b.id || idx} 
+                          className="rounded-2xl border-2 border-slate-200/80 hover:border-amber-400 overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between bg-white group"
+                        >
+                          {/* Header Banner */}
+                          <div className={`p-3.5 text-white text-left ${
+                            isOrangeHeader 
+                              ? 'bg-gradient-to-r from-[#d9531e] via-[#e25d28] to-[#f26e38]' 
+                              : 'bg-gradient-to-r from-[#0b193c] via-[#14285b] to-[#1e3c84]'
+                          }`}>
+                            <div className="flex items-center justify-between text-[9px] font-extrabold uppercase tracking-widest text-amber-300 mb-1">
+                              <span>🔥 ENROLLING NOW</span>
+                              <span className="bg-white/20 px-2 py-0.5 rounded-full text-white">LIMITED SEATS</span>
+                            </div>
+                            <h3 className="font-display font-black text-sm text-white group-hover:text-amber-200 transition-colors line-clamp-1">
+                              {batchTitle}
+                            </h3>
                           </div>
-                          <h3 className="font-display font-black text-sm text-white group-hover:text-amber-200 transition-colors line-clamp-1">
-                            {batchTitle}
-                          </h3>
-                        </div>
 
-                        {/* Batch Details Body */}
-                        <div className="p-4 space-y-2.5 text-xs text-slate-700 font-medium">
-                          
-                          <div className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
-                            <span className="text-base">📅</span>
-                            <div>
-                              <div className="text-[10px] text-slate-400 font-bold uppercase">Batch Starting</div>
-                              <div className="font-extrabold text-slate-900">{startDateFormatted}</div>
+                          {/* Batch Details Body */}
+                          <div className="p-4 space-y-2.5 text-xs text-slate-700 font-medium">
+                            
+                            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                              <span className="text-base">📅</span>
+                              <div>
+                                <div className="text-[10px] text-slate-400 font-bold uppercase">Batch Starting</div>
+                                <div className="font-extrabold text-slate-900">{startDateFormatted}</div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                              <span className="text-base">💻</span>
+                              <div>
+                                <div className="text-[10px] text-slate-400 font-bold uppercase">Learning Mode</div>
+                                <div className="font-extrabold text-slate-900">{modeFormatted}</div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
+                              <span className="text-base">📋</span>
+                              <div>
+                                <div className="text-[10px] text-slate-400 font-bold uppercase">Subjects Covered</div>
+                                <div className="font-bold text-slate-900">{b.subjects || 'All Papers Included'}</div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold pt-1">
+                              <span>🎯</span> {b.batchType || 'Weekend & Regular Batches Available'}
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
-                            <span className="text-base">💻</span>
-                            <div>
-                              <div className="text-[10px] text-slate-400 font-bold uppercase">Learning Mode</div>
-                              <div className="font-extrabold text-slate-900">{modeFormatted}</div>
-                            </div>
+                          {/* Action Footer */}
+                          <div className="p-3 bg-slate-50 border-t border-slate-100">
+                            <button
+                              onClick={() => openEnquireModal(batchTitle)}
+                              className={`w-full py-2.5 px-4 rounded-xl text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                                isOrangeHeader 
+                                  ? 'bg-[#d9531e] hover:bg-[#b84214] shadow-amber-500/10' 
+                                  : 'bg-[#0b193c] hover:bg-[#162e63] shadow-blue-500/10'
+                              }`}
+                            >
+                              Enquire & Reserve Seat <FiArrowRight />
+                            </button>
                           </div>
 
-                          <div className="flex items-center gap-2.5 p-2 rounded-lg bg-slate-50 border border-slate-100">
-                            <span className="text-base">📋</span>
-                            <div>
-                              <div className="text-[10px] text-slate-400 font-bold uppercase">Subjects Covered</div>
-                              <div className="font-bold text-slate-900">{b.subjects || 'All Papers Included'}</div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 text-[11px] text-slate-500 font-semibold pt-1">
-                            <span>🎯</span> {b.batchType || 'Weekend & Regular Batches Available'}
-                          </div>
                         </div>
-
-                        {/* Action Footer */}
-                        <div className="p-3 bg-slate-50 border-t border-slate-100">
-                          <button
-                            onClick={() => openEnquireModal(batchTitle)}
-                            className={`w-full py-2.5 px-4 rounded-xl text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                              isOrangeHeader 
-                                ? 'bg-[#d9531e] hover:bg-[#b84214] shadow-amber-500/10' 
-                                : 'bg-[#0b193c] hover:bg-[#162e63] shadow-blue-500/10'
-                            }`}
-                          >
-                            Enquire & Reserve Seat <FiArrowRight />
-                          </button>
-                        </div>
-
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-8 text-center text-slate-500 font-medium text-xs">
+                    📅 New batches will be announced soon! Contact our counselor for upcoming batch schedules.
+                  </div>
+                )}
               </div>
 
               {/* Bottom Note */}
@@ -564,18 +578,18 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
             <div>
               <span className="font-display font-black text-2xl sm:text-3xl text-amber-400 mr-3">
-                Admissions Open
+                {settings.cta_title || "Admissions Open"}
               </span>
               <span className="text-slate-200 text-sm sm:text-base font-semibold">
-                Join Today & Start Your Success Journey!
+                {settings.cta_subtitle || "Join Today & Start Your Success Journey!"}
               </span>
             </div>
 
             <button
-              onClick={() => openEnquireModal('Admissions Open')}
+              onClick={() => openEnquireModal(settings.cta_title || 'Admissions Open')}
               className="bg-[#f2a900] hover:bg-[#d99700] text-slate-950 font-black text-sm px-7 py-2.5 rounded-md shadow-lg transition-all uppercase tracking-wider cursor-pointer"
             >
-              Join Now
+              {settings.cta_btn_text || "Join Now"}
             </button>
           </div>
         </div>
@@ -601,54 +615,53 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {displayToppers.map((t, idx) => (
-              <div 
-                key={t.id || idx}
-                className="bg-slate-50/80 rounded-2xl border border-slate-200/90 p-5 text-center flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <div>
-                  <div className="w-20 h-20 rounded-full bg-slate-200 mx-auto overflow-hidden mb-3 border-4 border-white shadow-md group-hover:scale-105 transition-transform">
-                    {t.photo ? (
-                      <img src={getImgSrc(t.photo)} alt={t.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <img 
-                        src={idx === 0 
-                          ? "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80"
-                          : "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&auto=format&fit=crop&q=80"
-                        } 
-                        alt={t.name} 
-                        className="w-full h-full object-cover" 
-                      />
-                    )}
+          {displayToppers.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+              {displayToppers.map((t, idx) => (
+                <div 
+                  key={t.id || idx}
+                  className="bg-slate-50/80 rounded-2xl border border-slate-200/90 p-5 text-center flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group"
+                >
+                  <div>
+                    <div className="w-20 h-20 rounded-full bg-slate-200 mx-auto overflow-hidden mb-3 border-4 border-white shadow-md group-hover:scale-105 transition-transform flex items-center justify-center font-bold text-slate-500 text-xl">
+                      {t.photo ? (
+                        <img src={getImgSrc(t.photo)} alt={t.name} className="w-full h-full object-cover" />
+                      ) : (
+                        t.name ? t.name[0] : '🏆'
+                      )}
+                    </div>
+                    <div className="font-extrabold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">{t.name}</div>
+                    <div className="text-rose-600 font-black text-xl my-1">{t.percentage || t.marks}</div>
+                    <div className="text-xs text-slate-500 font-bold mb-3">{t.exam || t.course || 'Commerce Topper'}</div>
                   </div>
-                  <div className="font-extrabold text-sm text-slate-900 group-hover:text-blue-600 transition-colors">{t.name}</div>
-                  <div className="text-rose-600 font-black text-xl my-1">{t.percentage || t.marks || '95.70%'}</div>
-                  <div className="text-xs text-slate-500 font-bold mb-3">{t.exam || t.course || 'Commerce Topper'}</div>
-                </div>
 
-                <div className="text-[11px] text-slate-600 space-y-1 pt-3 border-t border-slate-200 font-medium">
-                  {t.subjects ? <div>{t.subjects}</div> : <div>Accountancy: <b>98/100</b> | BST: <b>94/100</b></div>}
+                  <div className="text-[11px] text-slate-600 space-y-1 pt-3 border-t border-slate-200 font-medium">
+                    {t.subjects && <div>{t.subjects}</div>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
-            {/* Bonus Join Card */}
-            <div className="bg-[#0b193c] text-white p-6 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center space-y-3 shadow-lg">
-              <div className="w-14 h-14 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center text-2xl font-bold">
-                🏆
+              {/* Bonus Join Card */}
+              <div className="bg-[#0b193c] text-white p-6 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center space-y-3 shadow-lg">
+                <div className="w-14 h-14 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center text-2xl font-bold">
+                  🏆
+                </div>
+                <div className="font-extrabold text-sm text-white">Many More Success Stories</div>
+                <div className="text-xs text-slate-300 font-medium">Join D's Education and be the Next Topper!</div>
+                <button 
+                  onClick={() => openEnquireModal('Toppers Join')} 
+                  className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
+                >
+                  Enroll Now
+                </button>
               </div>
-              <div className="font-extrabold text-sm text-white">Many More Success Stories</div>
-              <div className="text-xs text-slate-300 font-medium">Join D's Education and be the Next Topper!</div>
-              <button 
-                onClick={() => openEnquireModal('Toppers Join')} 
-                className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all cursor-pointer"
-              >
-                Enroll Now
-              </button>
+
             </div>
-
-          </div>
+          ) : (
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-8 text-center text-slate-500 font-medium text-xs">
+              🏆 Student ranker results will be published after the board & competitive exams!
+            </div>
+          )}
 
         </div>
       </section>
@@ -782,36 +795,26 @@ export default function HomePage() {
                 💬 What Students Say
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {[
-                  {
-                    name: 'Rohit Sharma',
-                    course: 'CA Foundation Student',
-                    text: 'The best place for CA/CMA preparation. Concepts are explained in very easy way.'
-                  },
-                  {
-                    name: 'Priya Verma',
-                    course: 'CMA Foundation Student',
-                    text: 'Regular tests and doubt classes helped me a lot in my preparation.'
-                  },
-                  {
-                    name: 'Niharika Agarwal',
-                    course: '12th Commerce Topper',
-                    text: 'Thank you D\'s Education for helping me achieve good marks.'
-                  }
-                ].map((t, idx) => (
-                  <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
-                    <p className="text-slate-600 text-xs leading-relaxed italic mb-3">
-                      "{t.text}"
-                    </p>
-                    <div>
-                      <div className="font-extrabold text-xs text-slate-900">{t.name}</div>
-                      <div className="text-[10px] text-slate-500 font-bold">{t.course}</div>
-                      <div className="text-amber-400 text-xs mt-1">★★★★★</div>
+              {Array.isArray(settings.testimonials) && settings.testimonials.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {settings.testimonials.map((t, idx) => (
+                    <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                      <p className="text-slate-600 text-xs leading-relaxed italic mb-3">
+                        "{t.text || t.comment}"
+                      </p>
+                      <div>
+                        <div className="font-extrabold text-xs text-slate-900">{t.name}</div>
+                        <div className="text-[10px] text-slate-500 font-bold">{t.course || t.role}</div>
+                        <div className="text-amber-400 text-xs mt-1">★★★★★</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 text-center text-slate-500 text-xs font-medium">
+                  💬 Student reviews will be published soon.
+                </div>
+              )}
             </div>
 
             {/* Right Column: Latest Articles */}
@@ -825,18 +828,24 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <div className="space-y-2.5">
-                {displayBlogs.map((b, idx) => (
-                  <Link 
-                    key={b.id || idx} 
-                    to={`/blogs/${b.slug || b.id}`}
-                    className="block p-3 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 text-xs font-extrabold text-slate-800 hover:text-blue-600 transition-all flex items-center justify-between"
-                  >
-                    <span>› {b.title}</span>
-                    <FiArrowRight className="text-slate-400" />
-                  </Link>
-                ))}
-              </div>
+              {displayBlogs.length > 0 ? (
+                <div className="space-y-2.5">
+                  {displayBlogs.map((b, idx) => (
+                    <Link 
+                      key={b.id || idx} 
+                      to={`/blogs/${b.slug || b.id}`}
+                      className="block p-3 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 text-xs font-extrabold text-slate-800 hover:text-blue-600 transition-all flex items-center justify-between"
+                    >
+                      <span>› {b.title}</span>
+                      <FiArrowRight className="text-slate-400" />
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 text-center text-slate-500 text-xs font-medium">
+                  📝 Articles will be published soon.
+                </div>
+              )}
             </div>
 
           </div>
