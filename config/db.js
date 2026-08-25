@@ -33,7 +33,8 @@ if (useSqlite) {
     pool: { max: 10, min: 0, acquire: 30000, idle: 10000 }
   });
 } else {
-  const dbHost = process.env.DB_HOST || 'localhost';
+  const rawHost = process.env.DB_HOST || '127.0.0.1';
+  const dbHost = (rawHost === 'localhost' || !rawHost) ? '127.0.0.1' : rawHost;
   sequelize = new Sequelize(
     process.env.DB_NAME || 'dseducation_crm',
     process.env.DB_USER || 'dseducation_crm',
@@ -56,12 +57,12 @@ const connectDB = async () => {
     console.error('⚠️ Primary DB Connection Error:', error.message);
   }
 
-  // Smart fallback retry for cPanel MySQL user/host variations (e.g. 127.0.0.1 vs localhost)
+  // Smart fallback retry for cPanel MySQL user/host variations (forcing 127.0.0.1 IPv4)
   if (isMysqlMode) {
     const dbName = process.env.DB_NAME || 'dseducation_crm';
     const dbPass = process.env.DB_PASS || 'DS_Education_2026!';
     const userCandidates = [...new Set([process.env.DB_USER, 'dseducation_crm', 'dseducation_admin'].filter(Boolean))];
-    const hostCandidates = ['localhost', '127.0.0.1'];
+    const hostCandidates = ['127.0.0.1', 'localhost'];
 
     for (const u of userCandidates) {
       for (const h of hostCandidates) {
