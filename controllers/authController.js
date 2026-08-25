@@ -129,6 +129,7 @@ exports.login = async (req, res) => {
     const cleanInput = email.toString().trim();
     const cleanPass = password.toString().trim();
 
+    // 1. Search User by email (case-insensitive)
     let user = await User.findOne({ where: { email: cleanInput } });
     if (!user) {
       user = await User.findOne({ 
@@ -136,13 +137,16 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Try finding User directly by phone number
+    // 2. Search User by phone number (if multiple users share same phone, prioritize Teacher/Admin)
     if (!user) {
-      user = await User.findOne({ where: { phone: cleanInput } });
+      const usersByPhone = await User.findAll({ where: { phone: cleanInput } });
+      if (usersByPhone.length > 0) {
+        user = usersByPhone.find(u => ['teacher', 'faculty', 'admin', 'superadmin', 'superproadmin'].includes((u.role || '').toString().trim().toLowerCase())) || usersByPhone[0];
+      }
     }
 
+    // 3. Search by Student Enrollment No or Phone (for student portal login)
     if (!user) {
-      // Check if student identifier was entered (Enrollment No or Phone)
       const student = await Student.findOne({
         where: {
           [Sequelize.Op.or]: [
@@ -155,7 +159,7 @@ exports.login = async (req, res) => {
         if (student.email) {
           user = await User.findOne({ where: { email: student.email } });
         }
-        if (!user) {
+        if (!user && student.id) {
           user = await User.findOne({ where: { studentId: student.id } });
         }
       }
