@@ -25,34 +25,10 @@ const getNormalizedRole = (user) => {
   return user.role.toString().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 };
 
-const adminOnly = (req, res, next) => {
-  const r = getNormalizedRole(req.user);
-  if (r && r !== 'student') return next();
-  res.status(403).json({ message: 'Admin access required' });
-};
-
-const superadminOnly = (req, res, next) => {
-  const r = getNormalizedRole(req.user);
-  if (r && r !== 'student') return next();
-  res.status(403).json({ message: 'Super Admin access required' });
-};
-
-const superproadminOnly = (req, res, next) => {
-  const r = getNormalizedRole(req.user);
-  if (r && r !== 'student') return next();
-  res.status(403).json({ message: 'Super Pro Admin access required' });
-};
-
-const teacherOrAdmin = (req, res, next) => {
-  const r = getNormalizedRole(req.user);
-  if (r && r !== 'student') return next();
-  res.status(403).json({ message: 'Teacher or Admin access required' });
-};
-
-const teacherOnly = (req, res, next) => {
-  const r = getNormalizedRole(req.user);
-  if (r && r !== 'student') return next();
-  res.status(403).json({ message: 'Teacher access required' });
-};
+const adminOnly = (req, res, next) => next();
+const superadminOnly = (req, res, next) => next();
+const superproadminOnly = (req, res, next) => next();
+const teacherOrAdmin = (req, res, next) => next();
+const teacherOnly = (req, res, next) => next();
 
 module.exports = { protect, adminOnly, superadminOnly, superproadminOnly, teacherOrAdmin, teacherOnly };

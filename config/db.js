@@ -9,17 +9,14 @@ const sqlitePath = process.env.DB_STORAGE || (
   path.join(__dirname, 'database.sqlite')
 );
 
-// Determine DB Dialect: Prioritize MySQL for cPanel / production
-const isMysqlMode = process.env.DB_DIALECT === 'mysql' || 
-                    process.env.USE_SQLITE === 'false' || 
-                    Boolean(process.env.DB_NAME) || 
-                    process.env.NODE_ENV === 'production';
+// Determine DB Dialect: Use SQLite for local development unless DB_HOST is explicitly remote/cPanel
+const isRemoteMysql = process.env.DB_HOST && process.env.DB_HOST !== '127.0.0.1' && process.env.DB_HOST !== 'localhost';
+const isMysqlMode = process.env.DB_DIALECT === 'mysql' && (isRemoteMysql || process.env.NODE_ENV === 'production');
 
 let sequelize;
 
 if (isMysqlMode) {
   const rawHost = process.env.DB_HOST || '127.0.0.1';
-  // On cPanel/Linux Node 17+, "localhost" resolves to IPv6 ::1, which fails. Enforce IPv4 127.0.0.1
   const dbHost = (rawHost === 'localhost' || !rawHost) ? '127.0.0.1' : rawHost;
   
   sequelize = new Sequelize(
