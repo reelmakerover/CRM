@@ -21,6 +21,11 @@ export default function StudentLayout() {
   const isEnrolled = Boolean(student?.batchId || student?.batch?.name || student?.courseId || student?.course?.name);
 
   const filteredNav = NAV.filter(item => {
+    if (!isEnrolled) {
+      // Unenrolled students: show Dashboard, Video Lectures, Demo Tests, Enroll in Course, Profile
+      return ['/student/dashboard', '/student/lectures', '/student/exams', '/student/courses', '/student/profile'].includes(item.path);
+    }
+    // Enrolled students: hide "Enroll in Course", show all active features
     if (isEnrolled && item.path === '/student/courses') return false;
     return true;
   });

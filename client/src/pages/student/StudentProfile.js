@@ -250,7 +250,7 @@ export default function StudentProfile() {
               </span>
             ) : pendingAmount === 0 && paidAmount > 0 ? (
               <span className="badge bg-emerald-100 text-emerald-700 flex items-center gap-1 font-semibold">
-                <FiCheckCircle size={13} /> Fully Paid
+                <FiCheckCircle size={13} /> Fees Cleared
               </span>
             ) : paidAmount > 0 && pendingAmount > 0 ? (
               <span className="badge bg-amber-100 text-amber-800 flex items-center gap-1 font-semibold">

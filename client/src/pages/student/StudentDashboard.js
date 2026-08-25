@@ -115,76 +115,119 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      {/* YOUR ASSIGNED BATCH CARD */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <h3 className="font-extrabold text-base text-slate-900">Your Batch</h3>
-          <button onClick={() => setBatchModal(true)} className="text-xs font-bold text-primary-600 hover:text-primary-800 cursor-pointer">
-            View Details ➔
-          </button>
-        </div>
-
-        <div 
-          onClick={() => setBatchModal(true)}
-          className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-4 group"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-[#0b193c] text-white rounded-2xl flex items-center justify-center flex-shrink-0 font-black text-center text-xs p-2 leading-tight shadow-md">
-              {courseTitle.substring(0, 10).toUpperCase()}
+      {/* YOUR ASSIGNED BATCH CARD OR NOT ENROLLED BANNER */}
+      {!(student?.batchId || student?.batch?.id || student?.batch?.name) ? (
+        <div className="bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 p-6 rounded-3xl shadow-lg border border-amber-400/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-950 text-amber-400 font-extrabold text-[11px] uppercase tracking-wider rounded-full shadow-xs">
+              <span>🚀</span> Account Active · Not Enrolled Yet
             </div>
-            <div>
-              <h4 className="font-extrabold text-slate-900 text-base group-hover:text-primary-600 transition-colors">
-                {courseTitle}
-              </h4>
-              <p className="text-xs font-bold text-primary-600 mt-0.5">
-                {batchName}
-              </p>
-              <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mt-1">
-                <FiClock className="text-slate-400" /> Batch Time: {batchTiming}
+            <h3 className="text-xl font-black text-slate-950 tracking-tight">
+              Ready to Join CA & CMA Batches?
+            </h3>
+            <p className="text-xs text-slate-900 font-semibold max-w-lg leading-relaxed">
+              Explore running offline/online batches or contact institute admin to assign your course batch & fee structure.
+            </p>
+          </div>
+          <Link
+            to="/courses"
+            className="bg-slate-950 hover:bg-slate-900 text-amber-400 font-black text-xs px-5 py-3 rounded-2xl shadow-md transition-all uppercase tracking-wider whitespace-nowrap cursor-pointer flex items-center gap-2"
+          >
+            <span>🔍 Browse Courses & Batches</span>
+            <span>➔</span>
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="font-extrabold text-base text-slate-900">Your Batch</h3>
+            <button onClick={() => setBatchModal(true)} className="text-xs font-bold text-primary-600 hover:text-primary-800 cursor-pointer">
+              View Details ➔
+            </button>
+          </div>
+
+          <div 
+            onClick={() => setBatchModal(true)}
+            className="bg-white p-5 rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-md transition-all cursor-pointer flex items-center justify-between gap-4 group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-[#0b193c] text-white rounded-2xl flex items-center justify-center flex-shrink-0 font-black text-center text-xs p-2 leading-tight shadow-md">
+                {courseTitle.substring(0, 10).toUpperCase()}
+              </div>
+              <div>
+                <h4 className="font-extrabold text-slate-900 text-base group-hover:text-primary-600 transition-colors">
+                  {courseTitle}
+                </h4>
+                <p className="text-xs font-bold text-primary-600 mt-0.5">
+                  {batchName}
+                </p>
+                <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mt-1">
+                  <FiClock className="text-slate-400" /> Batch Time: {batchTiming}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-primary-600 group-hover:text-white transition-all flex items-center justify-center text-slate-500 font-bold text-sm shrink-0">
-            ➔
+            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-primary-600 group-hover:text-white transition-all flex items-center justify-center text-slate-500 font-bold text-sm shrink-0">
+              ➔
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* FEATURES GRID (APP STYLE 9 CARDS) */}
+      {/* FEATURES GRID */}
       <div className="space-y-3 pt-2">
-        <h3 className="font-extrabold text-base text-slate-900 px-1">Features & Learning Hub</h3>
+        <h3 className="font-extrabold text-base text-slate-900 px-1">
+          {!(student?.batchId || student?.batch?.id || student?.batch?.name) ? "Explore Institute Portal" : "Features & Learning Hub"}
+        </h3>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
-          {/* 1. Study Material */}
+          {/* 1. Study Material (Only for Enrolled Students) */}
+          {(student?.batchId || student?.batch?.id || student?.batch?.name) && (
+            <Link 
+              to="/student/lectures"
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-blue-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
+                📚
+              </div>
+              <div>
+                <h4 className="font-black text-slate-900 text-sm group-hover:text-blue-600 transition-colors">Study Material</h4>
+                <p className="text-[11px] text-slate-500 font-medium">Notes, PDFs & Books</p>
+              </div>
+            </Link>
+          )}
+
+          {/* 2. Live Classes (Only for Enrolled Students) */}
+          {(student?.batchId || student?.batch?.id || student?.batch?.name) && (
+            <Link 
+              to="/student/lectures"
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
+                ▶️
+              </div>
+              <div>
+                <h4 className="font-black text-slate-900 text-sm group-hover:text-indigo-600 transition-colors">Classes</h4>
+                <p className="text-[11px] text-slate-500 font-medium">Live & Recorded</p>
+              </div>
+            </Link>
+          )}
+
+          {/* Video Lectures / Demo Videos (Always visible) */}
           <Link 
             to="/student/lectures"
             className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-blue-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
           >
             <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
-              📚
+              🎥
             </div>
             <div>
-              <h4 className="font-black text-slate-900 text-sm group-hover:text-blue-600 transition-colors">Study Material</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Notes, PDFs & Books</p>
+              <h4 className="font-black text-slate-900 text-sm group-hover:text-blue-600 transition-colors">Video Lectures</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Demo & Class Videos</p>
             </div>
           </Link>
 
-          {/* 2. Classes */}
-          <Link 
-            to="/student/lectures"
-            className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-indigo-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
-              ▶️
-            </div>
-            <div>
-              <h4 className="font-black text-slate-900 text-sm group-hover:text-indigo-600 transition-colors">Classes</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Live & Recorded</p>
-            </div>
-          </Link>
-
-          {/* 3. Test */}
+          {/* 3. Tests / Practice Exams (Always visible) */}
           <Link 
             to="/student/exams"
             className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
@@ -193,54 +236,60 @@ export default function StudentDashboard() {
               📝
             </div>
             <div>
-              <h4 className="font-black text-slate-900 text-sm group-hover:text-emerald-600 transition-colors">Test</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Chapter & Mock Tests</p>
+              <h4 className="font-black text-slate-900 text-sm group-hover:text-emerald-600 transition-colors">Tests & Exams</h4>
+              <p className="text-[11px] text-slate-500 font-medium">Practice & Mock Tests</p>
             </div>
           </Link>
 
-          {/* 4. Attendance */}
-          <div 
-            onClick={openAttendance}
-            className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-amber-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
-              📅
+          {/* 4. Attendance (Only for Enrolled Students) */}
+          {(student?.batchId || student?.batch?.id || student?.batch?.name) && (
+            <div 
+              onClick={openAttendance}
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-amber-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
+                📅
+              </div>
+              <div>
+                <h4 className="font-black text-slate-900 text-sm group-hover:text-amber-600 transition-colors">Attendance</h4>
+                <p className="text-[11px] text-slate-500 font-medium">View Your Record</p>
+              </div>
             </div>
-            <div>
-              <h4 className="font-black text-slate-900 text-sm group-hover:text-amber-600 transition-colors">Attendance</h4>
-              <p className="text-[11px] text-slate-500 font-medium">View Your Record</p>
-            </div>
-          </div>
+          )}
 
-          {/* 5. My Fees */}
-          <div 
-            onClick={() => setFeesModal(true)}
-            className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-purple-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
-              💳
+          {/* 5. My Fees (Only for Enrolled Students) */}
+          {(student?.batchId || student?.batch?.id || student?.batch?.name) && (
+            <div 
+              onClick={() => setFeesModal(true)}
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-purple-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
+                💳
+              </div>
+              <div>
+                <h4 className="font-black text-slate-900 text-sm group-hover:text-purple-600 transition-colors">My Fees</h4>
+                <p className="text-[11px] text-slate-500 font-medium">Fee Receipts & Due</p>
+              </div>
             </div>
-            <div>
-              <h4 className="font-black text-slate-900 text-sm group-hover:text-purple-600 transition-colors">My Fees</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Fee Receipts & Due</p>
-            </div>
-          </div>
+          )}
 
-          {/* 6. Performance */}
-          <Link 
-            to="/student/results"
-            className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-rose-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
-              📈
-            </div>
-            <div>
-              <h4 className="font-black text-slate-900 text-sm group-hover:text-rose-600 transition-colors">Performance</h4>
-              <p className="text-[11px] text-slate-500 font-medium">Progress Analytics</p>
-            </div>
-          </Link>
+          {/* 6. Performance / Results (Only for Enrolled Students) */}
+          {(student?.batchId || student?.batch?.id || student?.batch?.name) && (
+            <Link 
+              to="/student/results"
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-rose-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
+                📈
+              </div>
+              <div>
+                <h4 className="font-black text-slate-900 text-sm group-hover:text-rose-600 transition-colors">Performance</h4>
+                <p className="text-[11px] text-slate-500 font-medium">Progress Analytics</p>
+              </div>
+            </Link>
+          )}
 
-          {/* 7. Announcements */}
+          {/* 7. Announcements (Always visible) */}
           <div 
             onClick={() => setAnnouncementsModal(true)}
             className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-cyan-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
@@ -254,7 +303,23 @@ export default function StudentDashboard() {
             </div>
           </div>
 
-          {/* 8. Doubt Support */}
+          {/* Courses & Batches Catalog (Shown for Unenrolled Students) */}
+          {!(student?.batchId || student?.batch?.id || student?.batch?.name) && (
+            <Link 
+              to="/student/courses"
+              className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-amber-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
+            >
+              <div className="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold group-hover:scale-110 transition-transform">
+                🎓
+              </div>
+              <div>
+                <h4 className="font-black text-slate-900 text-sm group-hover:text-amber-600 transition-colors">Running Batches</h4>
+                <p className="text-[11px] text-slate-500 font-medium">Explore & Enroll</p>
+              </div>
+            </Link>
+          )}
+
+          {/* 8. Doubt Support (Always visible) */}
           <a 
             href="https://wa.me/916350149302?text=Hi%20Sir%2C%20I%20have%20a%20doubt%20regarding%20my%20batch%20subject."
             target="_blank"
@@ -270,7 +335,7 @@ export default function StudentDashboard() {
             </div>
           </a>
 
-          {/* 9. My Notes */}
+          {/* 9. My Notes (Always visible) */}
           <div 
             onClick={() => setNotesModal(true)}
             className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-amber-400 transition-all flex flex-col justify-between h-36 text-left group cursor-pointer"
@@ -376,7 +441,7 @@ export default function StudentDashboard() {
                     <span className="text-xs font-bold text-slate-600 uppercase">Payment Status</span>
                     {pendingAmount === 0 && paidAmount > 0 ? (
                       <span className="badge bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">
-                        ✓ Fully Paid
+                        ✓ Fees Cleared
                       </span>
                     ) : paidAmount > 0 && pendingAmount > 0 ? (
                       <span className="badge bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">
